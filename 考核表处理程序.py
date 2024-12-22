@@ -55,6 +55,12 @@ class ExcelProcessor:
                 if cell.value == "KPI":
                     return row_idx
         return None
+    def find_header_summary_row(self, sheet):
+        for row_idx in range(1, 10):
+            for cell in sheet[row_idx]:
+                if cell.value == "合计得分":
+                    return row_idx
+        return None
 
     def get_fixed_data(self, fixed_sheet, department, indicator):
         department_row = None
@@ -127,8 +133,12 @@ class ExcelProcessor:
             fixed_sheet = wb['固定数据']
 
             header_row = self.find_header_row(result_sheet)
+            header_summary_row = self.find_header_summary_row(result_sheet)
             if header_row is None:
                 self.log("未找到KPI列")
+                return
+            if header_summary_row is None:
+                self.log("未找到合计得分列")
                 return
 
             desktop_path = os.path.join(os.path.expanduser("~"), "Desktop", "考核表")
@@ -144,8 +154,13 @@ class ExcelProcessor:
                     if result_sheet.cell(header_row, col).value == "KPI":
                         kpi_col = col
                         break
+                summary_col = None
+                for col in range(1, result_sheet.max_column + 1):
+                    if result_sheet.cell(header_summary_row, col).value == "合计得分":
+                        summary_col = col
+                        break
 
-                if kpi_col and row[kpi_col - 1].value == "--":
+                if kpi_col and row[kpi_col - 1].value == "--" and row[summary_col - 1].value != 0:
                     actual_values = self.get_actual_values(file_path, department, header_row)
 
                     new_wb = openpyxl.Workbook()
