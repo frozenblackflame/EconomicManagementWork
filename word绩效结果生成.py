@@ -33,6 +33,16 @@ class PerformanceProcessor:
         )
         self.select_button.pack(pady=20)
 
+        # 创建奖罚文件选择按钮
+        self.select_penalty_button = tk.Button(
+            self.root,
+            text="奖罚文件选择",
+            command=self.select_penalty_file,
+            width=20,
+            height=2
+        )
+        self.select_penalty_button.pack(pady=20)
+
         # 创建日志显示框
         self.log_text = scrolledtext.ScrolledText(
             self.root,
@@ -41,24 +51,68 @@ class PerformanceProcessor:
         )
         self.log_text.pack(pady=10)
 
+        self.penalty_data = {}  # 用于存储奖罚数据
+        self.performance_file_path = None  # 用于存储绩效文件路径
+
     def log(self, message):
         self.log_text.insert(tk.END, f"{message}\n")
         self.log_text.see(tk.END)
         self.root.update()
 
-    def process_file(self):
-        # 选择Excel文件
-        file_path = filedialog.askopenfilename(
-            filetypes=[("Excel files", "*.xlsx;*.xls")]
+    def select_penalty_file(self):
+        # 选择奖罚Excel文件
+        penalty_file_path = filedialog.askopenfilename(
+            filetypes=[("Excel files", "科室奖罚数据.xlsx")]
         )
-        if not file_path:
+        if not penalty_file_path:
             return
 
-        self.log(f"已选择文件: {file_path}")
+        self.log(f"已选择奖罚文件: {penalty_file_path}")
+
+        try:
+            # 加载奖罚Excel文件
+            wb = load_workbook(penalty_file_path)
+            sheet = wb.active  # 默认读取第一个工作表
+            self.log("成功加载奖罚数据")
+
+            # 读取奖罚数据
+            for row in range(2, sheet.max_row + 1):  # 从第二行开始读取
+                penalty_type = sheet.cell(row=row, column=1).value
+                department = sheet.cell(row=row, column=2).value
+                amount = sheet.cell(row=row, column=3).value
+                remark = sheet.cell(row=row, column=4).value
+
+                if department not in self.penalty_data:
+                    self.penalty_data[department] = []
+                self.penalty_data[department].append((penalty_type, amount, remark))
+
+            self.log("奖罚数据已成功加载")
+
+        except Exception as e:
+            error_msg = f"加载奖罚文件时出现错误: {str(e)}"
+            self.log(error_msg)
+            messagebox.showerror("错误", error_msg)
+
+    def process_file(self):
+        # 选择Excel文件
+        self.performance_file_path = filedialog.askopenfilename(
+            filetypes=[("Excel files", "*绩效文件.xlsx")]
+        )
+        if not self.performance_file_path:
+            return
+
+        self.log(f"已选择文件: {self.performance_file_path}")
 
         try:
             # 加载Excel文件
-            wb = load_workbook(file_path)
+            wb = load_workbook(self.performance_file_path)
+            sheet_names = wb.sheetnames  # 获取所有工作表名称
+            self.log(f"可用工作表: {sheet_names}")
+
+            # 检查是否存在“考核结果”工作表
+            if "考核结果" not in sheet_names:
+                raise ValueError("工作表 '考核结果' 不存在，请检查文件。")
+
             sheet = wb["考核结果"]
             self.log("成功加载工作表'考核结果'")
 
@@ -85,6 +139,12 @@ class PerformanceProcessor:
                         doc.add_paragraph(f"奖惩合计：{rewards_penalties}")
                         doc.add_paragraph(f"实际发放（二次分配）金额：{final_amount}")
 
+                        # 检查是否有奖罚数据
+                        if department in self.penalty_data:
+                            doc.add_paragraph("单项奖罚明细：")
+                            for penalty_type, amount, remark in self.penalty_data[department]:
+                                doc.add_paragraph(f"金额：{amount}，备注：{remark}")
+
                         # 添加空行
                         doc.add_paragraph()
                         doc.add_paragraph()
@@ -102,7 +162,7 @@ class PerformanceProcessor:
                 month = current_date.month - 1
 
             filename = f"{year}年{month}月 绩效结果.docx"
-            save_path = os.path.join(os.path.dirname(file_path), filename)
+            save_path = os.path.join(os.path.dirname(self.performance_file_path), filename)
 
             # 保存文件
             doc.save(save_path)
