@@ -137,9 +137,12 @@ class PerformanceProcessor:
         # 创建Word文档
         doc = Document()
 
+        # 用于存储有奖罚明细的科室名称
+        departments_with_penalties = []
+
         # 处理每一行数据
         processed_count = 0
-        for row in range(39, 97):  # 35到93行
+        for row in range(39, 98):  # 35到93行
             if sheet.cell(row=row, column=1).value:  # 检查序号列
                 department = sheet.cell(row=row, column=2).value
                 if department:  # 如果科室名称不为空
@@ -162,6 +165,8 @@ class PerformanceProcessor:
                         doc.add_paragraph("单项奖罚明细：")
                         for penalty_type, amount, remark in self.penalty_data[department]:
                             doc.add_paragraph(f"金额：{amount}，备注：{remark}")
+                            # 将有奖罚明细的科室名称添加到列表中
+                            departments_with_penalties.append(department)
 
                     # 添加空行
                     doc.add_paragraph()
@@ -186,6 +191,14 @@ class PerformanceProcessor:
         doc.save(save_path)
         self.log(f"成功处理 {processed_count} 个科室")
         self.log(f"文件已保存: {save_path}")
+
+        # 打印有奖罚明细的科室名称到控制台
+        if departments_with_penalties:
+            print("有单项奖罚明细的科室名称:")
+            for dept in departments_with_penalties:
+                print(dept)
+        else:
+            print("没有科室有单项奖罚明细。")
 
         messagebox.showinfo("完成", f"文件已保存为: {save_path}")
 
