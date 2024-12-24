@@ -96,11 +96,11 @@ class PerformanceApp:
         
         
         for index, row in df.iterrows():
-            # 用于记录优势病种的计数
-            advantage_disease_count = 1
             department = row[columns[0]]  # 科室名称
             if department not in data_dict:
                 data_dict[department] = []
+                # 用于记录优势病种的计数
+                advantage_disease_count = 1
             
             # 获取项目名称和工作量
             project_name = row[columns[1]]  # 项目名称
