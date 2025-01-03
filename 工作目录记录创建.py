@@ -21,6 +21,12 @@ def create_work_directories(year):
                 os.makedirs(month_dir)
                 print(f"创建子目录：{month_dir}")
         
+        # 创建述职报告子目录
+        report_dir = os.path.join(main_dir, "述职报告")
+        if not os.path.exists(report_dir):
+            os.makedirs(report_dir)
+            print(f"创建述职报告目录：{report_dir}")
+        
         print("\n目录创建完成！")
         
     except Exception as e:
