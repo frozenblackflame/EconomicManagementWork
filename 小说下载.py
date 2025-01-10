@@ -4,6 +4,7 @@ import json
 import os
 from concurrent.futures import ThreadPoolExecutor
 import re
+import concurrent.futures
 
 def get_headers():
     """返回请求头"""
@@ -82,6 +83,106 @@ def get_novel_info(html):
     page_urls = get_page_urls(html)
     return novel_title, page_urls
 
+def get_chapter_content(url, chapter_title, folder_path):
+    """获取章节内容并保存到单独文件"""
+    try:
+        print(f"开始下载章节: {chapter_title}")
+        print(f"正在访问URL: {url}")
+        
+        all_content = []
+        current_url = url
+        
+        while True:
+            print(f"正在获取页面: {current_url}")
+            response = requests.get(current_url, headers=get_headers(), timeout=10)
+            response.encoding = 'utf-8'
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # 获取内容
+            content_div = soup.find('div', class_='articlecontent')
+            if content_div:
+                paragraphs = content_div.find_all('p')
+                content = '\n'.join(p.text.strip() for p in paragraphs if p.text.strip())
+                all_content.append(content)
+            
+            # 检查是否为最后一页
+            if "下一章" in soup.text:
+                break
+                
+            # 获取下一页URL
+            next_link = soup.find('a', id='next_url')
+            if not next_link:
+                break
+                
+            current_url = f"https://www.tkxyk.cc{next_link['href']}"
+        
+        # 保存到单独的文件
+        chapter_file = os.path.join(folder_path, f"{chapter_title}.txt")
+        with open(chapter_file, 'w', encoding='utf-8') as f:
+            f.write(f"{chapter_title}\n\n")
+            f.write('\n'.join(all_content))
+        
+        print(f"章节下载完成: {chapter_title}")
+        return chapter_title
+        
+    except Exception as e:
+        print(f"获取章节内容失败 {chapter_title}: {str(e)}")
+        return None
+
+def merge_chapters(folder_path, output_file, chapters):
+    """按顺序合并所有章节文件"""
+    try:
+        print("开始合并章节文件...")
+        with open(output_file, 'w', encoding='utf-8') as outfile:
+            for chapter in chapters:
+                chapter_file = os.path.join(folder_path, f"{chapter['title']}.txt")
+                if os.path.exists(chapter_file):
+                    with open(chapter_file, 'r', encoding='utf-8') as infile:
+                        outfile.write(infile.read())
+                        outfile.write("\n\n")
+        print(f"合并完成，已保存到: {output_file}")
+    except Exception as e:
+        print(f"合并章节失败: {str(e)}")
+
+def download_novel():
+    """下载小说内容"""
+    try:
+        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+        json_file = os.path.join(desktop_path, f"{novel_title}.json")
+        
+        # 创建小说专用文件夹
+        novel_folder = os.path.join(desktop_path, novel_title)
+        os.makedirs(novel_folder, exist_ok=True)
+        print(f"创建文件夹: {novel_folder}")
+        
+        # 读取JSON文件
+        with open(json_file, 'r', encoding='utf-8') as f:
+            chapters = json.load(f)
+        
+        # 使用多线程下载内容
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_chapter = {
+                executor.submit(get_chapter_content, 
+                              chapter['url'], 
+                              chapter['title'],
+                              novel_folder): chapter
+                for chapter in chapters
+            }
+            
+            # 等待所有下载完成
+            completed_chapters = []
+            for future in concurrent.futures.as_completed(future_to_chapter):
+                chapter_title = future.result()
+                if chapter_title:
+                    completed_chapters.append(chapter_title)
+        
+        # 合并所有章节
+        output_file = os.path.join(desktop_path, f"{novel_title}.txt")
+        merge_chapters(novel_folder, output_file, chapters)
+        
+    except Exception as e:
+        print(f"下载小说失败: {str(e)}")
+
 def main():
     try:
         # 获取第一页
@@ -91,6 +192,7 @@ def main():
         response.encoding = 'utf-8'
         
         # 从第一页获取小说名称和所有目录页URLs
+        global novel_title  # 使其成为全局变量以便download_novel使用
         novel_title, page_urls = get_novel_info(response.text)
         if not page_urls:
             print("错误: 未能获取到任何目录页面URL")
@@ -118,6 +220,10 @@ def main():
             json.dump(all_chapters, f, ensure_ascii=False, indent=2)
         
         print(f"成功保存 {len(all_chapters)} 个章节到 {json_path}")
+        
+        # 开始下载小说内容
+        print("开始下载小说内容...")
+        download_novel()
         
     except Exception as e:
         print(f"程序执行出错: {str(e)}")
