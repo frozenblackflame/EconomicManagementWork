@@ -259,8 +259,8 @@ def download_novel():
 
 def main():
     try:
-        # 获取第一页
-        first_page_url = "https://www.tkxyk.cc/indexlist/342265/1.html"
+        #手动输入
+        first_page_url = input("请输入小说首页URL: ")
         print(f"正在获取首页: {first_page_url}")
         response = requests.get(first_page_url, headers=get_headers(), timeout=10)
         response.encoding = 'utf-8'
