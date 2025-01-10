@@ -41,6 +41,31 @@ def get_page_urls(html):
     print(f"找到 {len(urls)} 个目录页面")
     return urls
 
+def get_last_page_next_chapter_url(url):
+    """获取上一章最后一页的下一章URL"""
+    try:
+        current_url = url
+        while True:
+            print(f"正在检查页面: {current_url}")
+            response = requests.get(current_url, headers=get_headers(), timeout=10)
+            response.encoding = 'utf-8'
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            next_link = soup.find('a', id='next_url')
+            if not next_link:
+                return None
+                
+            # 如果找到"下一章"链接，返回完整URL
+            if "下一章" in next_link.text:
+                return f"https://www.tkxyk.cc{next_link['href']}"
+            
+            # 否则继续访问下一页
+            current_url = f"https://www.tkxyk.cc{next_link['href']}"
+            
+    except Exception as e:
+        print(f"获取下一章URL失败: {str(e)}")
+        return None
+
 def get_chapter_urls(page_url):
     """获取每个目录页面中的章节URL"""
     try:
@@ -60,16 +85,35 @@ def get_chapter_urls(page_url):
         if not chapter_links:
             print(f"警告: 在页面 {page_url} 中未找到章节链接")
             return []
-            
+        
+        last_valid_url = None
         for link in chapter_links:
             href = link.get('href', '')
-            if 'javascript:;' not in href:
+            chapter_title = link.text.strip()
+            
+            if 'javascript:;' in href or 'class="h"' in str(link):
+                # 处理无效链接的章节
+                if last_valid_url:
+                    print(f"发现无效链接章节: {chapter_title}，尝试从上一章获取URL")
+                    next_chapter_url = get_last_page_next_chapter_url(f"https://www.tkxyk.cc{last_valid_url}")
+                    if next_chapter_url:
+                        chapters.append({
+                            'title': chapter_title,
+                            'url': next_chapter_url
+                        })
+                        last_valid_url = next_chapter_url.replace('https://www.tkxyk.cc', '')
+                        print(f"成功获取章节 {chapter_title} 的URL: {next_chapter_url}")
+                    else:
+                        print(f"警告: 无法获取章节 {chapter_title} 的URL")
+            else:
+                # 处理正常链接
                 chapter_url = f"https://www.tkxyk.cc{href}"
-                chapter_title = link.text.strip()
                 chapters.append({
                     'title': chapter_title,
                     'url': chapter_url
                 })
+                last_valid_url = href
+                
         print(f"从 {page_url} 获取到 {len(chapters)} 个章节")
         return chapters
     except Exception as e:
@@ -223,7 +267,7 @@ def main():
         
         # 开始下载小说内容
         print("开始下载小说内容...")
-        download_novel()
+        # download_novel()
         
     except Exception as e:
         print(f"程序执行出错: {str(e)}")
