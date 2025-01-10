@@ -230,7 +230,7 @@ def download_novel():
             chapters = json.load(f)
         
         # 使用多线程下载内容
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=50) as executor:
             future_to_chapter = {
                 executor.submit(get_chapter_content, 
                               chapter['url'], 
