@@ -74,6 +74,7 @@ def get_chapter_urls(page_url):
         response.encoding = 'utf-8'
         soup = BeautifulSoup(response.text, 'html.parser')
         chapters = []
+        valid_chapter_count = 0  # 添加有效章节计数
         
         # 只获取chapters类下的链接
         chapter_list = soup.find('ul', class_='chapters')
@@ -102,7 +103,8 @@ def get_chapter_urls(page_url):
                             'url': next_chapter_url
                         })
                         last_valid_url = next_chapter_url.replace('https://www.tkxyk.cc', '')
-                        print(f"成功获取章节 {chapter_title} 的URL: {next_chapter_url}")
+                        valid_chapter_count += 1  # 计数成功获取URL的章节
+                        print(f"成功获取章节 {chapter_title}")
                     else:
                         print(f"警告: 无法获取章节 {chapter_title} 的URL")
             else:
@@ -113,8 +115,9 @@ def get_chapter_urls(page_url):
                     'url': chapter_url
                 })
                 last_valid_url = href
+                valid_chapter_count += 1  # 计数正常链接章节
                 
-        print(f"从 {page_url} 获取到 {len(chapters)} 个章节")
+        print(f"从 {page_url} 获取到 {valid_chapter_count} 个有效章节")
         return chapters
     except Exception as e:
         print(f"获取页面 {page_url} 失败: {str(e)}")
@@ -137,7 +140,6 @@ def get_chapter_content(url, chapter_title, folder_path):
         current_url = url
         
         while True:
-            print(f"正在获取页面: {current_url}")
             response = requests.get(current_url, headers=get_headers(), timeout=10)
             response.encoding = 'utf-8'
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -163,7 +165,6 @@ def get_chapter_content(url, chapter_title, folder_path):
         # 保存到单独的文件
         chapter_file = os.path.join(folder_path, f"{chapter_title}.txt")
         with open(chapter_file, 'w', encoding='utf-8') as f:
-            f.write(f"{chapter_title}\n\n")
             f.write('\n'.join(all_content))
         
         print(f"章节下载完成: {chapter_title}")
@@ -187,6 +188,31 @@ def merge_chapters(folder_path, output_file, chapters):
         print(f"合并完成，已保存到: {output_file}")
     except Exception as e:
         print(f"合并章节失败: {str(e)}")
+
+def clean_up_files(json_path, folder_path):
+    """清理中间文件和文件夹"""
+    try:
+        print("开始清理临时文件...")
+        
+        # 删除JSON文件
+        if os.path.exists(json_path):
+            os.remove(json_path)
+            print(f"已删除JSON文件: {json_path}")
+            
+        # 删除章节文件夹及其内容
+        if os.path.exists(folder_path):
+            for file in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, file)
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    print(f"删除文件失败 {file_path}: {str(e)}")
+            
+            os.rmdir(folder_path)
+            print(f"已删除章节文件夹: {folder_path}")
+            
+    except Exception as e:
+        print(f"清理文件失败: {str(e)}")
 
 def download_novel():
     """下载小说内容"""
@@ -224,6 +250,10 @@ def download_novel():
         output_file = os.path.join(desktop_path, f"{novel_title}.txt")
         merge_chapters(novel_folder, output_file, chapters)
         
+        # 清理临时文件
+        clean_up_files(json_file, novel_folder)
+        print("清理完成！")
+        
     except Exception as e:
         print(f"下载小说失败: {str(e)}")
 
@@ -236,7 +266,7 @@ def main():
         response.encoding = 'utf-8'
         
         # 从第一页获取小说名称和所有目录页URLs
-        global novel_title  # 使其成为全局变量以便download_novel使用
+        global novel_title
         novel_title, page_urls = get_novel_info(response.text)
         if not page_urls:
             print("错误: 未能获取到任何目录页面URL")
@@ -244,6 +274,7 @@ def main():
         
         # 使用多线程获取所有章节
         all_chapters = []
+        total_valid_chapters = 0  # 添加总有效章节计数
         with ThreadPoolExecutor(max_workers=5) as executor:
             results = list(executor.map(
                 lambda url: get_chapter_urls(url),
@@ -251,6 +282,7 @@ def main():
             ))
             for chapters in results:
                 all_chapters.extend(chapters)
+                total_valid_chapters += len(chapters)  # 累计有效章节数
         
         if not all_chapters:
             print("错误: 未能获取到任何章节")
@@ -263,11 +295,11 @@ def main():
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(all_chapters, f, ensure_ascii=False, indent=2)
         
-        print(f"成功保存 {len(all_chapters)} 个章节到 {json_path}")
+        print(f"成功保存 {total_valid_chapters} 个有效章节到 {json_path}")
         
         # 开始下载小说内容
         print("开始下载小说内容...")
-        # download_novel()
+        download_novel()
         
     except Exception as e:
         print(f"程序执行出错: {str(e)}")
