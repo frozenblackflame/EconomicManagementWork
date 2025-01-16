@@ -24,9 +24,9 @@ def extract_resources():
 
     # 需要提取的文件列表
     files_to_extract = [
-        "template/积分_模板.xlsm",
-        "template/绩效_模板.xlsm",
-        "template/实际值_模板.xlsm"
+        "积分_模板.xlsm",
+        "绩效_模板.xlsm",
+        "实际值_模板.xlsm"
     ]
 
     # 提取文件
@@ -243,9 +243,9 @@ def main():
     print('\n===== 执行第二步：处理模板文件并创建ZIP包 =====')
     current_dir = os.getcwd()
     files_to_convert = [
-        os.path.join(current_dir, "template/积分_模板.xlsm"),
-        os.path.join(current_dir, "template/绩效_模板.xlsm"),
-        os.path.join(current_dir, "template/实际值_模板.xlsm")
+        os.path.join(current_dir, "积分_模板.xlsm"),
+        os.path.join(current_dir, "绩效_模板.xlsm"),
+        os.path.join(current_dir, "实际值_模板.xlsm")
     ]
 
     # 检查文件是否存在
@@ -260,7 +260,7 @@ def main():
 
 
 # 创建 performance.spec 文件
-# 运行 pyinstaller -F -w performance.spec
+# 运行 pyinstaller -F performance.spec
 """
 # -*- mode: python ; coding: utf-8 -*-
 
