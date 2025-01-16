@@ -59,7 +59,7 @@ def main():
         if file.endswith(".jpg"):
             html_list.append(jpg_to_html(os.path.join("image", file)))
     #将html列表写入html.json文件并保存到桌面
-    with open(os.path.join(os.path.expanduser("~"), "Desktop", "html.json"), "w", encoding="utf-8") as file:
+    with open(os.path.join(os.path.expanduser("~"), "Desktop", "table.json"), "w", encoding="utf-8") as file:
         json.dump(html_list, file, ensure_ascii=False, indent=4)
 
     #强制删除image文件夹包括文件夹下的所有文件
