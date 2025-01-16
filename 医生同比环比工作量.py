@@ -25,7 +25,9 @@ def process_excel_files(directory, output_folder):
                 '3级手术': header_row_1.index('3级手术'),
                 '4级手术': header_row_1.index('4级手术'),
                 '3级微创手术': header_row_1.index('3级微创手术'),
-                '4级微创手术': header_row_1.index('4级微创手术')
+                '4级微创手术': header_row_1.index('4级微创手术'),
+                '优势病种1': header_row_1.index('优势病种1'),
+                '优势病种2': header_row_1.index('优势病种2')
             }
             
             # 收集每个科室的数据
@@ -80,3 +82,4 @@ Mode                 LastWriteTime         Length Name
 -a----         2025/1/16     14:56          52291 2024.11临床积分明细.xlsx
 -a----         2025/1/16     14:56          51795 2024.12临床积分明细.xlsx
 '''
+# 优势病种需要手动添加
