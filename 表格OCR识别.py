@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 
 from lineless_table_rec import LinelessTableRecognition
@@ -25,8 +26,10 @@ def pdf_to_jpg(pdf_path, output_folder="image"):
         pix = page.get_pixmap(matrix=fitz.Matrix(300/72, 300/72))
         # 创建图像对象
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        #当前日期
+        date = datetime.now().strftime("%H-%M-%S-%f")
         # 保存图像
-        img.save(os.path.join(output_folder, f"page_{page_num + 1}.jpg"))
+        img.save(os.path.join(output_folder, f"{date}_page_{page_num + 1}.jpg"))
 
 def jpg_to_html(img_path):
     lineless_engine = LinelessTableRecognition()
@@ -45,8 +48,10 @@ def jpg_to_html(img_path):
     return html
 
 def main():
-    pdf_path = input("请输入pdf文件路径: ").replace("\"", "")
-    pdf_to_jpg(pdf_path)
+    pdf_path = input("请输入pdf文件夹路径: ").replace("\"", "")
+    pdf_list = os.listdir(pdf_path)
+    for pdf in pdf_list:
+        pdf_to_jpg(os.path.join(pdf_path, pdf))
     #获取返回的html列表
     html_list = []
     #循环image文件夹下的jpg文件,传入完整路径
