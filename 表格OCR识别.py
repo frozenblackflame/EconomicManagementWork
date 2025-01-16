@@ -1,35 +1,11 @@
-from datetime import datetime
 import os
 
 from lineless_table_rec import LinelessTableRecognition
-from lineless_table_rec.utils_table_recover import format_html, plot_rec_box_with_logic_info, plot_rec_box
 from table_cls import TableCls
 from wired_table_rec import WiredTableRecognition
 
-import fitz  # PyMuPDF
-from PIL import Image
 import json
-import pandas as pd
-from bs4 import BeautifulSoup
-
-def pdf_to_jpg(pdf_path, output_folder="image"):
-    # 确保输出文件夹存在
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    # 打开PDF文件
-    pdf_document = fitz.open(pdf_path)
-    for page_num in range(len(pdf_document)):
-        # 获取页面
-        page = pdf_document.load_page(page_num)
-        # 将页面转换为像素地图
-        pix = page.get_pixmap(matrix=fitz.Matrix(300/72, 300/72))
-        # 创建图像对象
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-        #当前日期
-        date = datetime.now().strftime("%H-%M-%S-%f")
-        # 保存图像
-        img.save(os.path.join(output_folder, f"{date}_page_{page_num + 1}.jpg"))
+from UniversalToolbox import pdf_to_jpg
 
 def jpg_to_html(img_path):
     lineless_engine = LinelessTableRecognition()

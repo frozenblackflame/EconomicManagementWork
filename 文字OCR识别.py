@@ -1,9 +1,7 @@
-from datetime import datetime
 import json
 from rapidocr_onnxruntime import RapidOCR
-import fitz  # PyMuPDF
-from PIL import Image
 import os
+from UniversalToolbox import pdf_to_jpg
 
 def ocr_text(img_path):
     engine = RapidOCR()
@@ -11,25 +9,6 @@ def ocr_text(img_path):
     extracted_texts = [item[1] for item in result]
     print(f"识别结果: {extracted_texts}")
     return extracted_texts
-
-def pdf_to_jpg(pdf_path, output_folder="image"):
-    # 确保输出文件夹存在
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    # 打开PDF文件
-    pdf_document = fitz.open(pdf_path)
-    for page_num in range(len(pdf_document)):
-        # 获取页面
-        page = pdf_document.load_page(page_num)
-        # 将页面转换为像素地图
-        pix = page.get_pixmap(matrix=fitz.Matrix(300/72, 300/72))
-        # 创建图像对象
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-        #当前日期
-        date = datetime.now().strftime("%H-%M-%S-%f")
-        # 保存图像
-        img.save(os.path.join(output_folder, f"{date}_page_{page_num + 1}.jpg"))
 
 def main():
     pdf_path = input("请输入pdf文件夹路径: ").replace("\"", "")
