@@ -72,3 +72,11 @@ def process_excel_files(directory, output_folder):
 directory = r'C:\Users\biyun\Desktop\医生同比环比工作量提取'
 output_folder = r'C:\Users\biyun\Desktop\医生同比环比工作量'
 process_excel_files(directory, output_folder)
+# 目录格式
+'''
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          2024/9/4     15:42          43282 2023.12临床积分明细.xlsx
+-a----         2025/1/16     14:56          52291 2024.11临床积分明细.xlsx
+-a----         2025/1/16     14:56          51795 2024.12临床积分明细.xlsx
+'''
