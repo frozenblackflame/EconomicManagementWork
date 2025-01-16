@@ -41,17 +41,22 @@ def process_excel_files(folder_path):
                     if pd.notna(department_name):  # 确保科室名称不是NaN
                         if department_name not in department_data:
                             department_data[department_name] = {
-                                '出院人次': row[indices['出院人次']],
-                                '门诊人次': row[indices['门诊人次']],
-                                '3级手术': row[indices['3级手术']],
-                                '4级手术': row[indices['4级手术']],
-                                '3级微创手术': row[indices['3级微创手术']],
-                                '4级微创手术': row[indices['4级微创手术']],
+                                '出院人次': row[indices['出院人次']+2],
+                                '门诊人次': row[indices['门诊人次']+2],
+                                '3级手术': row[indices['3级手术']+2],
+                                '4级手术': row[indices['4级手术']+2],
+                                '3级微创手术': row[indices['3级微创手术']+2],
+                                '4级微创手术': row[indices['4级微创手术']+2],
                             }
 
             # 将计算结果添加到部门数据
             for department, data in department_data.items():
                 data['微创手术'] = data['3级微创手术'] + data['4级微创手术']
+                
+                # 去除data['3级微创手术'] 和 data['4级微创手术']
+                data.pop('3级微创手术')
+                data.pop('4级微创手术')
+            
 
                 # 将数据转化为DataFrame
                 department_df = pd.DataFrame([data])
