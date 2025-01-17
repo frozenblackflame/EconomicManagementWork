@@ -9,11 +9,12 @@ def calculate_department_metrics():
     folder_path = r"C:\Users\biyun\Desktop\work\科室积分（2018.06-2024.10）\2024年绩效"
     # 定义输出JSON文件路径
     output_path = os.path.join(os.path.expanduser("~"), "Desktop", "医疗业务指标统计结果.json")
+    no_data_output_path = os.path.join(os.path.expanduser("~"), "Desktop", "无数据科室统计.json")
     
     # 科室列表
     departments = [
         "胸外一科", "胸外二科", "介入治疗科", "妇瘤一科", "妇瘤二科",
-        "骨软一科", "骨软二科", "乳腺一科", "乳腺二科", "头颈一科",
+        "骨与软组织一科", "骨与软组织二科", "乳腺一科", "乳腺二科", "头颈一科",
         "头颈二科", "胃肿瘤外科", "肝胆胰肿瘤外科", "泌尿外科", "结直肠肿瘤外科"
     ]
     
@@ -118,8 +119,13 @@ def calculate_department_metrics():
     # 生成最终JSON格式的报告
     final_report = OrderedDict()
     
+    # 记录无数据的科室
+    no_data_report = OrderedDict()
+    
     for dept in departments:
         dept_data = OrderedDict()
+        no_data_metrics = OrderedDict()
+        
         for metric in metrics:
             metric_data = OrderedDict()
             
@@ -136,26 +142,46 @@ def calculate_department_metrics():
             values = list(monthly_data.values())
             if values:
                 metric_data["statistics"] = {
-                    "平均值": round(sum(values) / len(values), 4),  # 使用实际月份数计算平均值
+                    "平均值": round(sum(values) / len(values), 4),
                     "数据月份数": len(values),
                     "总值": round(sum(values), 4)
+                }
+            else:
+                # 记录无数据的指标
+                no_data_metrics[metric] = {
+                    "状态": "无数据",
+                    "说明": "未找到任何月份的数据"
                 }
             
             dept_data[metric] = metric_data
         
         final_report[dept] = dept_data
+        
+        # 如果该科室有无数据的指标，添加到无数据报告中
+        if no_data_metrics:
+            no_data_report[dept] = no_data_metrics
     
     # 将结果保存为JSON文件
     try:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(final_report, f, ensure_ascii=False, indent=2)
         print(f"\n结果已保存到：{output_path}")
+        
+        # 保存无数据科室的报告
+        if no_data_report:
+            with open(no_data_output_path, 'w', encoding='utf-8') as f:
+                json.dump(no_data_report, f, ensure_ascii=False, indent=2)
+            print(f"无数据科室统计已保存到：{no_data_output_path}")
     except Exception as e:
         print(f"\n保存JSON文件时出错：{str(e)}")
     
     # 打印到控制台
     print("\n=== 统计结果 ===")
     print(json.dumps(final_report, ensure_ascii=False, indent=2))
+    
+    if no_data_report:
+        print("\n=== 无数据科室统计 ===")
+        print(json.dumps(no_data_report, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
     calculate_department_metrics()
