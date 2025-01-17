@@ -185,7 +185,7 @@ class PerformanceProcessor:
             month = current_date.month - 1
 
         filename = f"{year}年{month}月 绩效结果.docx"
-        save_path = os.path.join(os.path.dirname(self.performance_file_path), filename)
+        save_path = os.path.join(os.path.expanduser("~"), "Desktop", filename)
 
         # 保存文件
         doc.save(save_path)
