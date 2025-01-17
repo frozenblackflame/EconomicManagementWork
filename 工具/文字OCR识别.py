@@ -1,7 +1,7 @@
 import json
 from rapidocr_onnxruntime import RapidOCR
 import os
-from UniversalToolbox import pdf_to_jpg
+from 工具.UniversalToolbox import pdf_to_jpg
 
 def ocr_text(img_path):
     engine = RapidOCR()

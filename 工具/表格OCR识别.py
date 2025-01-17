@@ -5,7 +5,7 @@ from table_cls import TableCls
 from wired_table_rec import WiredTableRecognition
 
 import json
-from UniversalToolbox import pdf_to_jpg
+from 工具.UniversalToolbox import pdf_to_jpg
 
 def jpg_to_html(img_path):
     lineless_engine = LinelessTableRecognition()
