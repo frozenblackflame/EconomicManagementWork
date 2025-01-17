@@ -10,6 +10,7 @@ def calculate_department_metrics():
     # 定义输出JSON文件路径
     output_path = os.path.join(os.path.expanduser("~"), "Desktop", "医疗业务指标统计结果.json")
     no_data_output_path = os.path.join(os.path.expanduser("~"), "Desktop", "无数据科室统计.json")
+    simple_output_path = os.path.join(os.path.expanduser("~"), "Desktop", "医疗业务指标简化统计.json")
     
     # 科室列表
     departments = [
@@ -118,13 +119,13 @@ def calculate_department_metrics():
     
     # 生成最终JSON格式的报告
     final_report = OrderedDict()
-    
-    # 记录无数据的科室
     no_data_report = OrderedDict()
+    simple_report = OrderedDict()  # 新增简化格式报告
     
     for dept in departments:
         dept_data = OrderedDict()
         no_data_metrics = OrderedDict()
+        simple_dept_data = OrderedDict()  # 新增科室简化数据
         
         for metric in metrics:
             metric_data = OrderedDict()
@@ -146,6 +147,11 @@ def calculate_department_metrics():
                     "数据月份数": len(values),
                     "总值": round(sum(values), 4)
                 }
+                # 添加到简化格式
+                simple_dept_data[metric] = {
+                    "平均值": round(sum(values) / len(values), 4),
+                    "数据月份数": len(values)
+                }
             else:
                 # 记录无数据的指标
                 no_data_metrics[metric] = {
@@ -156,6 +162,7 @@ def calculate_department_metrics():
             dept_data[metric] = metric_data
         
         final_report[dept] = dept_data
+        simple_report[dept] = simple_dept_data  # 添加科室简化数据
         
         # 如果该科室有无数据的指标，添加到无数据报告中
         if no_data_metrics:
@@ -172,6 +179,12 @@ def calculate_department_metrics():
             with open(no_data_output_path, 'w', encoding='utf-8') as f:
                 json.dump(no_data_report, f, ensure_ascii=False, indent=2)
             print(f"无数据科室统计已保存到：{no_data_output_path}")
+        
+        # 保存简化格式报告
+        with open(simple_output_path, 'w', encoding='utf-8') as f:
+            json.dump(simple_report, f, ensure_ascii=False, indent=2)
+        print(f"简化统计结果已保存到：{simple_output_path}")
+            
     except Exception as e:
         print(f"\n保存JSON文件时出错：{str(e)}")
     
