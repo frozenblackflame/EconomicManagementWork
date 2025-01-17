@@ -164,7 +164,7 @@ class PerformanceProcessor:
                     if department in self.penalty_data:
                         doc.add_paragraph("单项奖罚明细：")
                         for penalty_type, amount, remark in self.penalty_data[department]:
-                            doc.add_paragraph(f"金额：{amount}，备注：{remark}")
+                            doc.add_paragraph(f"金额：{str(amount).replace('=', '')}，备注：{remark.replace('=', '')}")
                             # 将有奖罚明细的科室名称添加到列表中
                             departments_with_penalties.append(department)
 
@@ -189,12 +189,14 @@ class PerformanceProcessor:
 
         # 保存文件
         doc.save(save_path)
-        self.log(f"成功处理 {processed_count} 个科室")
+        self.log(f"成功处理 {processed_count} 行数据")
         self.log(f"文件已保存: {save_path}")
 
         # 打印有奖罚明细的科室名称到控制台
         if departments_with_penalties:
             print("有单项奖罚明细的科室名称:")
+            # 去重
+            departments_with_penalties = list(set(departments_with_penalties))
             for dept in departments_with_penalties:
                 print(dept)
         else:
