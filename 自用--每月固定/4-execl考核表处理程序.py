@@ -212,20 +212,12 @@ class ExcelProcessor:
                         for cell in row:
                             cell.border = thin_border
 
-                    # 自动调整列宽
-                    for column in new_ws.columns:
-                        max_length = 0
-                        column_letter = get_column_letter(column[0].column)
-                        
-                        for cell in column:
-                            try:
-                                if len(str(cell.value)) > max_length:
-                                    max_length = len(str(cell.value))
-                            except:
-                                pass
-                        
-                        adjusted_width = (max_length + 2)
-                        new_ws.column_dimensions[column_letter].width = adjusted_width
+                    # 替换原来的自动调整列宽代码
+                    # 设置固定列宽
+                    new_ws.column_dimensions['A'].width = 25  # A列宽度为25
+                    for col in range(2, 6):  # B到E列
+                        col_letter = get_column_letter(col)
+                        new_ws.column_dimensions[col_letter].width = 10
 
                     file_name = f"{department}考核表.xlsx"
                     save_path = os.path.join(desktop_path, file_name)
