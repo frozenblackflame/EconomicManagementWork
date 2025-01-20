@@ -1,7 +1,9 @@
 import json
 from rapidocr_onnxruntime import RapidOCR
 import os
-from 工具.UniversalToolbox import pdf_to_jpg
+from UniversalToolbox import pdf_to_jpg
+import tkinter as tk
+from tkinter import filedialog
 
 def ocr_text(img_path):
     engine = RapidOCR()
@@ -11,7 +13,11 @@ def ocr_text(img_path):
     return extracted_texts
 
 def main():
-    pdf_path = input("请输入pdf文件夹路径: ").replace("\"", "")
+    # 创建主窗口
+    root = tk.Tk()
+    root.withdraw()  # 隐藏主窗口
+    
+    pdf_path = filedialog.askdirectory(title='选择pdf文件夹')
     pdf_list = os.listdir(pdf_path)
     for pdf in pdf_list:
         pdf_to_jpg(os.path.join(pdf_path, pdf))

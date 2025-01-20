@@ -3,9 +3,11 @@ import os
 from lineless_table_rec import LinelessTableRecognition
 from table_cls import TableCls
 from wired_table_rec import WiredTableRecognition
+import tkinter as tk
+from tkinter import filedialog
 
 import json
-from 工具.UniversalToolbox import pdf_to_jpg
+from UniversalToolbox import pdf_to_jpg
 
 def jpg_to_html(img_path):
     lineless_engine = LinelessTableRecognition()
@@ -24,7 +26,11 @@ def jpg_to_html(img_path):
     return html
 
 def main():
-    pdf_path = input("请输入pdf文件夹路径: ").replace("\"", "")
+    # 创建主窗口
+    root = tk.Tk()
+    root.withdraw()  # 隐藏主窗口
+    
+    pdf_path = filedialog.askdirectory(title='选择pdf文件夹')
     pdf_list = os.listdir(pdf_path)
     for pdf in pdf_list:
         pdf_to_jpg(os.path.join(pdf_path, pdf))
