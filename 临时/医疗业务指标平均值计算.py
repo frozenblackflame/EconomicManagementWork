@@ -18,7 +18,7 @@ def calculate_department_metrics():
         "骨与软组织一科", "骨与软组织二科", "乳腺一科", "乳腺二科", "头颈一科",
         "头颈二科", "胃肿瘤外科", "肝胆胰肿瘤外科", "泌尿外科", "结直肠肿瘤外科",
         "乳腺内科", "血液病科", "消化肿瘤内一科", "消化肿瘤内二科", "呼吸肿瘤内科",
-        "中西医结合科","重症医学科"
+        "中西医结合科","重症医学科","门诊部"
     ]
     
     # 需要统计的指标
@@ -94,9 +94,9 @@ def calculate_department_metrics():
                                 try:
                                     # 获取指标列索引
                                     metric_idx = list(df.columns).index(metric)
-                                    # 非11月数据需要向右偏移3列
+                                    # 非11月数据需要向右偏移2列
                                     if not is_november:
-                                        metric_idx += 3
+                                        metric_idx += 2
                                     
                                     # 确保索引不超出列数
                                     if metric_idx < len(df.columns):
