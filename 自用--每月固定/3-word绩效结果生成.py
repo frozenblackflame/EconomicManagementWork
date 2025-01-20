@@ -140,6 +140,15 @@ class PerformanceProcessor:
         # 用于存储有奖罚明细的科室名称
         departments_with_penalties = []
 
+        # 获取上个月的年月
+        current_date = datetime.now()
+        if current_date.month == 1:
+            year = current_date.year - 1
+            month = 12
+        else:
+            year = current_date.year
+            month = current_date.month - 1
+
         # 处理每一行数据
         processed_count = 0
         for row in range(39, 98):  # 35到93行
@@ -152,19 +161,15 @@ class PerformanceProcessor:
                     rewards_penalties = format(float(sheet.cell(row=row, column=7).value or 0), '.2f')
                     final_amount = format(float(sheet.cell(row=row, column=8).value or 0), '.2f')
                     
-                    # 增加问候语句
-                    # 时间是上个月的
-                    time_str = datetime.now().strftime("%Y年%m月")
-                    # 头颈一科2024年11月绩效结果
-                    doc.add_paragraph(f"{department}2024年12月绩效结果")
-                    # 主任您好，2024年11月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）
-                    # 如果科室名称包含护理则主任改为护士长
-                    if "护理" in department:
-                        doc.add_paragraph(f"护士长您好，2024年12月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）")
-                    else:
-                        doc.add_paragraph(f"主任您好，2024年12月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）")
+                    # 使用计算得到的年月
+                    doc.add_paragraph(f"{department}{year}年{month}月绩效结果")
                     
-
+                    # 使用计算得到的年月
+                    if "护理" in department:
+                        doc.add_paragraph(f"护士长您好，{year}年{month}月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）")
+                    else:
+                        doc.add_paragraph(f"主任您好，{year}年{month}月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）")
+                    
                     # 添加科室信息
                     doc.add_paragraph(f"科室名称：{department}")
                     doc.add_paragraph(f"应发绩效：{performance_base}")
@@ -189,14 +194,6 @@ class PerformanceProcessor:
                     self.log(f"已处理科室: {department}")
 
         # 生成文件名和路径
-        current_date = datetime.now()
-        if current_date.month == 1:
-            year = current_date.year - 1
-            month = 12
-        else:
-            year = current_date.year
-            month = current_date.month - 1
-
         filename = f"{year}年{month}月 绩效结果.docx"
         save_path = os.path.join(os.path.expanduser("~"), "Desktop", filename)
 
