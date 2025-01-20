@@ -194,15 +194,17 @@ class ExcelProcessor:
                         new_ws[f'{col_letter}1'] = f'=SUM({col_letter}3:{col_letter}30)'
 
                     # 在保存文件之前添加样式设置
-                    for row in new_ws.iter_rows(min_row=1, max_row=current_row-1, min_col=1, max_col=5):
+                    thin_border = Border(
+                        left=Side(style='thin', color='000000'),
+                        right=Side(style='thin', color='000000'),
+                        top=Side(style='thin', color='000000'),
+                        bottom=Side(style='thin', color='000000')
+                    )
+                    
+                    # 为所有使用过的单元格添加边框
+                    for row in new_ws.iter_rows(min_row=1, max_row=max(current_row-1, 2), min_col=1, max_col=5):
                         for cell in row:
-                            # 设置边框
-                            cell.border = Border(
-                                left=Side(style='thin'),
-                                right=Side(style='thin'),
-                                top=Side(style='thin'),
-                                bottom=Side(style='thin')
-                            )
+                            cell.border = thin_border
 
                     # 自动调整列宽
                     for column in new_ws.columns:
