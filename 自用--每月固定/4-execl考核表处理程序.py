@@ -27,7 +27,7 @@ class ExcelProcessor:
         self.log_area.see(tk.END)
 
     def select_file(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
+        file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*积分文件.xlsx")])
         if file_path:
             self.process_excel(file_path)
 
