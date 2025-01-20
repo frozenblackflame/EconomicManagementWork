@@ -151,6 +151,19 @@ class PerformanceProcessor:
                     actual_performance = format(float(sheet.cell(row=row, column=6).value or 0), '.2f')
                     rewards_penalties = format(float(sheet.cell(row=row, column=7).value or 0), '.2f')
                     final_amount = format(float(sheet.cell(row=row, column=8).value or 0), '.2f')
+                    
+                    # 增加问候语句
+                    # 时间是上个月的
+                    time_str = datetime.now().strftime("%Y年%m月")
+                    # 头颈一科2024年11月绩效结果
+                    doc.add_paragraph(f"{department}2024年12月绩效结果")
+                    # 主任您好，2024年11月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）
+                    # 如果科室名称包含护理则主任改为护士长
+                    if "护理" in department:
+                        doc.add_paragraph(f"护士长您好，2024年12月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）")
+                    else:
+                        doc.add_paragraph(f"主任您好，2024年12月科室绩效结果如下所示，请查收（考核表和简要数据分析见附件）")
+                    
 
                     # 添加科室信息
                     doc.add_paragraph(f"科室名称：{department}")
