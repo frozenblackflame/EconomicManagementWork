@@ -3,3 +3,4 @@
 /.venv/
 /.idea/
 *.spec
+__pycache__/
