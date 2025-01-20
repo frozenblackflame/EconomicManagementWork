@@ -6,6 +6,7 @@ from tkinter import filedialog, scrolledtext
 
 import openpyxl
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import Border, Side
 
 
 class ExcelProcessor:
@@ -124,7 +125,7 @@ class ExcelProcessor:
             return {}
 
     def process_excel(self, file_path):
-        saved_files = []  # 用于存储已保存的文件路径
+        saved_files = []
         try:
             self.log(f"开始处理文件: {file_path}")
 
@@ -191,6 +192,32 @@ class ExcelProcessor:
                     for col in range(2, 6):
                         col_letter = get_column_letter(col)
                         new_ws[f'{col_letter}1'] = f'=SUM({col_letter}3:{col_letter}30)'
+
+                    # 在保存文件之前添加样式设置
+                    for row in new_ws.iter_rows(min_row=1, max_row=current_row-1, min_col=1, max_col=5):
+                        for cell in row:
+                            # 设置边框
+                            cell.border = Border(
+                                left=Side(style='thin'),
+                                right=Side(style='thin'),
+                                top=Side(style='thin'),
+                                bottom=Side(style='thin')
+                            )
+
+                    # 自动调整列宽
+                    for column in new_ws.columns:
+                        max_length = 0
+                        column_letter = get_column_letter(column[0].column)
+                        
+                        for cell in column:
+                            try:
+                                if len(str(cell.value)) > max_length:
+                                    max_length = len(str(cell.value))
+                            except:
+                                pass
+                        
+                        adjusted_width = (max_length + 2)
+                        new_ws.column_dimensions[column_letter].width = adjusted_width
 
                     file_name = f"{department}考核表.xlsx"
                     save_path = os.path.join(desktop_path, file_name)
