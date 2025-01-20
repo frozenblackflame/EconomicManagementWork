@@ -6,7 +6,7 @@ from tkinter import filedialog, scrolledtext
 
 import openpyxl
 from openpyxl.utils import get_column_letter
-from openpyxl.styles import Border, Side
+from openpyxl.styles import Border, Side, Alignment
 
 
 class ExcelProcessor:
@@ -192,6 +192,12 @@ class ExcelProcessor:
                     for col in range(2, 6):
                         col_letter = get_column_letter(col)
                         new_ws[f'{col_letter}1'] = f'=SUM({col_letter}3:{col_letter}30)'
+
+                    # 修改B1单元格的公式并合并B1-E1
+                    new_ws['B1'] = '=SUM(E3:E30)'
+                    new_ws.merge_cells('B1:E1')
+                    merged_cell = new_ws['B1']
+                    merged_cell.alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
 
                     # 在保存文件之前添加样式设置
                     thin_border = Border(
