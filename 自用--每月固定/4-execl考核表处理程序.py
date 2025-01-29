@@ -142,7 +142,7 @@ class ExcelProcessor:
                 self.log("未找到合计得分列")
                 return
 
-            desktop_path = os.path.join(os.path.expanduser("~"), "Desktop", "考核表")
+            desktop_path = os.path.join(os.path.expanduser("~"), "Desktop", "科室积分考核表")
             os.makedirs(desktop_path, exist_ok=True)
 
             for row in result_sheet.iter_rows(min_row=header_row + 1):
@@ -231,7 +231,7 @@ class ExcelProcessor:
             self.log(f"发生错误: {str(e)}")
 
             # 创建ZIP文件
-        zip_path = os.path.join(os.path.join(os.path.expanduser("~"), "Desktop"), f"考核表.zip")
+        zip_path = os.path.join(os.path.join(os.path.expanduser("~"), "Desktop"), f"科室积分考核表.zip")
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for file_path in saved_files:
                 arcname = os.path.basename(file_path)
