@@ -7,6 +7,10 @@ def calculate_monthly_ratio():
     # 设置文件路径
     base_path = r"C:\Users\biyun\Desktop\工作\存储表"
     
+    # 获取用户输入的科室名称，默认为"放疗机房"
+    department = input("请输入要计算的科室名称（直接回车默认为放疗机房）：").strip() or "放疗机房"
+    print(f"将计算 {department} 的耗占比...")
+    
     # 存储每月的耗占比结果
     monthly_ratios = {}
     
@@ -26,11 +30,11 @@ def calculate_monthly_ratio():
                     # 读取Excel文件，跳过第一行，使用第二行作为表头
                     df = pd.read_excel(file_path, usecols='A:Z', header=1)
                     
-                    # 找到"放疗机房"所在的行
-                    radiotherapy_row = df[df['科室名称'] == "放疗机房"]
+                    # 找到指定科室所在的行
+                    department_row = df[df['科室名称'] == department]
                     
-                    if radiotherapy_row.empty:
-                        print(f"警告：在文件 {filename} 的科室列中未找到'放疗机房'")
+                    if department_row.empty:
+                        print(f"警告：在文件 {filename} 的科室列中未找到'{department}'")
                         continue
                     
                     # 检查所需列是否存在
@@ -40,9 +44,9 @@ def calculate_monthly_ratio():
                             raise ValueError(f"未找到所需列：{col}")
                     
                     # 获取需要的数据
-                    haocai = float(radiotherapy_row['耗材'].iloc[0])
-                    menzhen = float(radiotherapy_row['门诊执行收入'].iloc[0])
-                    zhuyuan = float(radiotherapy_row['住院执行收入'].iloc[0])
+                    haocai = float(department_row['耗材'].iloc[0])
+                    menzhen = float(department_row['门诊执行收入'].iloc[0])
+                    zhuyuan = float(department_row['住院执行收入'].iloc[0])
                     
                     print(f"获取到的数据 - 耗材: {haocai}, 门诊: {menzhen}, 住院: {zhuyuan}")
                     
@@ -73,7 +77,7 @@ def calculate_monthly_ratio():
     
     # 将结果写入JSON文件到桌面
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-    output_path = os.path.join(desktop_path, "放疗机房耗占比.json")
+    output_path = os.path.join(desktop_path, f"{department}耗占比.json")
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(monthly_ratios, f, ensure_ascii=False, indent=4)
     
