@@ -61,6 +61,16 @@ def calculate_monthly_ratio():
                 import traceback
                 print(traceback.format_exc())
     
+    # 将结果写入JSON文件到桌面之前，计算平均值
+    if monthly_ratios:
+        # 将百分比字符串转换为浮点数进行计算
+        ratios_float = [float(ratio.strip('%')) for ratio in monthly_ratios.values()]
+        average_ratio = sum(ratios_float) / len(ratios_float)
+        
+        # 添加平均值到结果字典
+        monthly_ratios['年平均值'] = f"{round(average_ratio, 2)}%"
+        print(f"年平均耗占比为：{monthly_ratios['年平均值']}")
+    
     # 将结果写入JSON文件到桌面
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
     output_path = os.path.join(desktop_path, "放疗机房耗占比.json")
