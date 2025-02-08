@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 def calculate_department_metrics():
     # 定义目录路径
-    folder_path = r"C:\Users\biyun\Desktop\work\科室积分（2018.06-2024.10）\2024年绩效"
+    folder_path = r"C:\Users\biyun\Desktop\工作\科室积分（2018.06-2024.10）\2024年绩效"
     # 定义输出JSON文件路径
     output_path = os.path.join(os.path.expanduser("~"), "Desktop", "医疗业务指标统计结果.json")
     no_data_output_path = os.path.join(os.path.expanduser("~"), "Desktop", "无数据科室统计.json")
@@ -42,9 +42,9 @@ def calculate_department_metrics():
             processed_files.append(filename)
             
             try:
-                # 判断是否为11月的数据
-                is_november = '11月' in filename
-                
+                # 判断是否为11月或者12月的数据
+                is_november = '11月' in filename or '12月' in filename
+
                 # 读取Excel时不指定header
                 df = pd.read_excel(file_path, header=None)
                 # 删除B列
