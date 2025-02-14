@@ -36,30 +36,60 @@ def format_worksheet(worksheet):
     for col in ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']:
         worksheet.column_dimensions[col].width = 8
 
+def read_target_values():
+    """读取目标值"""
+    target_file = r"C:\Users\biyun\Desktop\work\2024年绩效\2024年11月绩效.xlsx"
+    try:
+        # 读取固定数据工作表
+        df = pd.read_excel(target_file, sheet_name='固定数据')
+        
+        # 将科室名称列设为索引
+        df.set_index(df.columns[0], inplace=True)
+        
+        # 创建目标值字典
+        target_dict = {}
+        for dept in df.index:
+            target_dict[dept] = {}
+            for col_idx in range(len(df.columns)-1):  # -1 是因为第一列是科室名称
+                indicator_name = df.columns[col_idx]
+                target_value = df.iloc[:, col_idx+1][dept]  # 错位读取
+                target_dict[dept][indicator_name] = target_value
+                
+        return target_dict
+    except Exception as e:
+        print(f"读取目标值文件时出错: {e}")
+        return {}
+
 def create_excel_data(data):
     """处理数据并创建Excel文件"""
     desktop_path = get_desktop_path()
     excel_path = os.path.join(desktop_path, "指标.xlsx")
     
+    # 读取目标值
+    target_values = read_target_values()
+    
     # 创建ExcelWriter对象
     with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
         # 遍历每个科室
         for dept_name, dept_data in data.items():
-            # 收集有效的指标数据
             valid_indicators = []
+            
+            # 获取当前科室的目标值字典
+            dept_targets = target_values.get(dept_name, {})
             
             # 遍历科室下的所有指标
             for indicator_name, indicator_data in dept_data.items():
-                # 检查是否有月度数据
                 if indicator_data.get('monthly_data') and len(indicator_data['monthly_data']) > 0:
                     monthly_data = indicator_data['monthly_data']
                     stats = indicator_data['statistics']
                     
-                    # 创建一行数据
+                    # 获取目标值
+                    target_value = dept_targets.get(indicator_name, '')
+                    
                     row_data = {
                         '序号': len(valid_indicators) + 1,
                         '考核指标': indicator_name,
-                        '目标值': '',  # 目标值未提供
+                        '目标值': target_value,  # 设置目标值
                         '1月': monthly_data.get('01月', ''),
                         '2月': monthly_data.get('02月', ''),
                         '3月': monthly_data.get('03月', ''),
