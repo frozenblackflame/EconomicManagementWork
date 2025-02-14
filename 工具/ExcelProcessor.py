@@ -49,7 +49,7 @@ class ExcelProcessor:
         
         if first_file:
             df = pd.read_excel(first_file, header=None)
-            df = df.drop(df.columns[1], axis=1)
+            # 不再删除B列
             
             header_row = df.iloc[3]
             new_headers = []
@@ -59,10 +59,11 @@ class ExcelProcessor:
                     current_header = h
                 new_headers.append(current_header)
             
-            # 如果没有指定metrics，则使用所有非空的列标题
+            # 添加"合计得分"到指标列表
             if self.metrics is None:
                 self.metrics = list(set(h for h in new_headers if pd.notna(h) and h != '科室'))
-        
+                self.metrics.append("合计得分")
+
         print(f"将统计以下指标：{', '.join(self.metrics)}\n")
         
         # 初始化results字典
@@ -77,7 +78,6 @@ class ExcelProcessor:
                 try:
                     is_november = '11月' in filename or '12月' in filename
                     df = pd.read_excel(file_path, header=None)
-                    df = df.drop(df.columns[1], axis=1)
                     
                     header_row = df.iloc[3]
                     new_headers = []
@@ -135,8 +135,20 @@ class ExcelProcessor:
             dept_data = df[df['科室'] == dept]
             if not dept_data.empty:
                 print(f"\n科室：{dept}")
+                
+                # 处理合计得分（B列）
+                try:
+                    total_score = dept_data.iloc[0, 1]  # B列的索引是1
+                    if pd.notna(total_score):
+                        total_score = float(total_score)
+                        self.results[dept]["合计得分"][month] = total_score
+                        print(f"  - 合计得分: {total_score:.4f}")
+                except Exception as e:
+                    print(f"  - 合计得分处理出错: {str(e)}")
+                
+                # 处理其他指标
                 for metric in self.metrics:
-                    if metric in df.columns:
+                    if metric != "合计得分" and metric in df.columns:
                         try:
                             metric_idx = list(df.columns).index(metric)
                             if not is_november:
