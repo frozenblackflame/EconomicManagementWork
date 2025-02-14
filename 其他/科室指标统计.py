@@ -83,13 +83,44 @@ def create_excel_data(data):
                     monthly_data = indicator_data['monthly_data']
                     stats = indicator_data['statistics']
                     
+                    # 跳过"合计得分"指标，稍后添加
+                    if indicator_name == "合计得分":
+                        continue
+                        
                     # 获取目标值
                     target_value = dept_targets.get(indicator_name, '')
                     
                     row_data = {
                         '序号': len(valid_indicators) + 1,
                         '考核指标': indicator_name,
-                        '目标值': target_value,  # 设置目标值
+                        '目标值': target_value,
+                        '1月': monthly_data.get('01月', ''),
+                        '2月': monthly_data.get('02月', ''),
+                        '3月': monthly_data.get('03月', ''),
+                        '4月': monthly_data.get('04月', ''),
+                        '5月': monthly_data.get('05月', ''),
+                        '6月': monthly_data.get('06月', ''),
+                        '7月': monthly_data.get('07月', ''),
+                        '8月': monthly_data.get('08月', ''),
+                        '9月': monthly_data.get('09月', ''),
+                        '10月': monthly_data.get('10月', ''),
+                        '11月': monthly_data.get('11月', ''),
+                        '12月': monthly_data.get('12月', ''),
+                        '全年均值': stats.get('平均值', '')
+                    }
+                    valid_indicators.append(row_data)
+            
+            # 在所有指标添加完后，将"合计得分"添加到最后
+            for indicator_name, indicator_data in dept_data.items():
+                if indicator_name == "合计得分" and indicator_data.get('monthly_data'):
+                    monthly_data = indicator_data['monthly_data']
+                    stats = indicator_data['statistics']
+                    target_value = dept_targets.get(indicator_name, '')
+                    
+                    row_data = {
+                        '序号': len(valid_indicators) + 1,
+                        '考核指标': indicator_name,
+                        '目标值': target_value,
                         '1月': monthly_data.get('01月', ''),
                         '2月': monthly_data.get('02月', ''),
                         '3月': monthly_data.get('03月', ''),
