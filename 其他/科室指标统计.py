@@ -77,21 +77,15 @@ def create_excel_data(data):
             # 获取当前科室的目标值字典
             dept_targets = target_values.get(dept_name, {})
             
-            # 遍历科室下的所有指标
+            # 先添加合计得分
             for indicator_name, indicator_data in dept_data.items():
-                if indicator_data.get('monthly_data') and len(indicator_data['monthly_data']) > 0:
+                if indicator_name == "合计得分" and indicator_data.get('monthly_data'):
                     monthly_data = indicator_data['monthly_data']
                     stats = indicator_data['statistics']
-                    
-                    # 跳过"合计得分"指标，稍后添加
-                    if indicator_name == "合计得分":
-                        continue
-                        
-                    # 获取目标值
                     target_value = dept_targets.get(indicator_name, '')
                     
                     row_data = {
-                        '序号': len(valid_indicators) + 1,
+                        '序号': 1,
                         '考核指标': indicator_name,
                         '目标值': target_value,
                         '1月': monthly_data.get('01月', ''),
@@ -110,9 +104,9 @@ def create_excel_data(data):
                     }
                     valid_indicators.append(row_data)
             
-            # 在所有指标添加完后，将"合计得分"添加到最后
+            # 添加其他指标
             for indicator_name, indicator_data in dept_data.items():
-                if indicator_name == "合计得分" and indicator_data.get('monthly_data'):
+                if indicator_name != "合计得分" and indicator_data.get('monthly_data') and len(indicator_data['monthly_data']) > 0:
                     monthly_data = indicator_data['monthly_data']
                     stats = indicator_data['statistics']
                     target_value = dept_targets.get(indicator_name, '')
