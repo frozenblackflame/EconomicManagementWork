@@ -2,6 +2,8 @@ import json
 import pandas as pd
 from pathlib import Path
 import os
+from openpyxl.styles import Alignment
+from openpyxl.utils import get_column_letter
 
 def get_desktop_path():
     """获取桌面路径"""
@@ -14,6 +16,25 @@ def read_json_data():
     
     with open(json_path, 'r', encoding='utf-8') as f:
         return json.load(f)
+
+def format_worksheet(worksheet):
+    """设置工作表格式"""
+    # 设置第一行合并单元格并居中
+    worksheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=16)
+    worksheet.cell(row=1, column=1).alignment = Alignment(horizontal='center', vertical='center')
+    
+    # 设置列宽
+    worksheet.column_dimensions['B'].width = 25  # 考核指标列
+    worksheet.column_dimensions['P'].width = 11  # 全年均值列
+    
+    # 设置所有单元格居中
+    for row in worksheet.rows:
+        for cell in row:
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+    
+    # 调整其他列的宽度为合适值
+    for col in ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O']:
+        worksheet.column_dimensions[col].width = 8
 
 def create_excel_data(data):
     """处理数据并创建Excel文件"""
@@ -60,15 +81,15 @@ def create_excel_data(data):
                 df = pd.DataFrame(valid_indicators)
                 
                 # 写入Excel，包括标题行
-                worksheet = writer.sheets.get(dept_name)
-                
-                # 写入表头
                 header = f"2024年{dept_name}开始指标统计表"
                 df.to_excel(writer, sheet_name=dept_name, index=False, startrow=1)
                 
                 # 获取worksheet对象并写入标题
                 worksheet = writer.sheets[dept_name]
                 worksheet.cell(row=1, column=1, value=header)
+                
+                # 设置格式
+                format_worksheet(worksheet)
 
 def main():
     # 读取JSON数据
