@@ -4,6 +4,15 @@ import json
 from collections import OrderedDict
 
 class ExcelProcessor:
+    @staticmethod
+    def get_default_output_path():
+        """
+        获取默认的JSON报告输出路径。
+
+        :return: 默认的JSON报告路径（用户桌面）
+        """
+        return os.path.join(os.path.expanduser("~"), "Desktop", "指标统计结果.json")
+
     def __init__(self, folder_path, departments, metrics=None, output_path=None):
         """
         初始化ExcelProcessor类。
@@ -18,7 +27,7 @@ class ExcelProcessor:
         self.folder_path = folder_path
         self.departments = departments
         self.metrics = metrics  # 现在可以为None
-        self.output_path = output_path or os.path.join(os.path.expanduser("~"), "Desktop", "指标统计结果.json")
+        self.output_path = output_path or self.get_default_output_path()
         self.results = {}  # 将在process_files中初始化
         self.no_data_report = OrderedDict()
         self.simple_report = OrderedDict()
@@ -212,10 +221,6 @@ class ExcelProcessor:
         """
         print("\n=== 统计结果 ===")
         print(json.dumps(final_report, ensure_ascii=False, indent=2))
-        
-        if self.no_data_report:
-            print("\n=== 无数据科室统计 ===")
-            print(json.dumps(self.no_data_report, ensure_ascii=False, indent=2))
 
     def run(self):
         """
