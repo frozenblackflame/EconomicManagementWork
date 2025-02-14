@@ -4,24 +4,22 @@ import json
 from collections import OrderedDict
 
 class ExcelProcessor:
-    def __init__(self, folder_path, departments, metrics, output_path=None, no_data_output_path=None, simple_output_path=None):
+    def __init__(self, folder_path, departments, metrics=None, output_path=None):
         """
         初始化ExcelProcessor类。
 
         :param folder_path: Excel文件所在的目录路径
         :param departments: 科室列表
-        :param metrics: 需要统计的指标列表
+        :param metrics: 需要统计的指标列表，如果为None则读取所有指标
         :param output_path: 最终JSON报告的输出路径
         :param no_data_output_path: 无数据科室统计报告的输出路径
         :param simple_output_path: 简化格式报告的输出路径
         """
         self.folder_path = folder_path
         self.departments = departments
-        self.metrics = metrics
-        self.output_path = output_path or os.path.join(os.path.expanduser("~"), "Desktop", "医疗业务指标统计结果.json")
-        self.no_data_output_path = no_data_output_path or os.path.join(os.path.expanduser("~"), "Desktop", "无数据科室统计.json")
-        self.simple_output_path = simple_output_path or os.path.join(os.path.expanduser("~"), "Desktop", "医疗业务指标简化统计.json")
-        self.results = {dept: {metric: {} for metric in metrics} for dept in departments}
+        self.metrics = metrics  # 现在可以为None
+        self.output_path = output_path or os.path.join(os.path.expanduser("~"), "Desktop", "指标统计结果.json")
+        self.results = {}  # 将在process_files中初始化
         self.no_data_report = OrderedDict()
         self.simple_report = OrderedDict()
         self.processed_files = []
@@ -32,7 +30,34 @@ class ExcelProcessor:
         """
         print("\n=== 开始处理数据 ===")
         print(f"将处理以下科室的数据：{', '.join(self.departments)}")
+        
+        # 处理第一个文件以获取所有指标
+        first_file = None
+        for filename in os.listdir(self.folder_path):
+            if filename.endswith('.xlsx') and '年' in filename and '月' in filename:
+                first_file = os.path.join(self.folder_path, filename)
+                break
+        
+        if first_file:
+            df = pd.read_excel(first_file, header=None)
+            df = df.drop(df.columns[1], axis=1)
+            
+            header_row = df.iloc[3]
+            new_headers = []
+            current_header = None
+            for h in header_row:
+                if pd.notna(h):
+                    current_header = h
+                new_headers.append(current_header)
+            
+            # 如果没有指定metrics，则使用所有非空的列标题
+            if self.metrics is None:
+                self.metrics = list(set(h for h in new_headers if pd.notna(h) and h != '科室'))
+        
         print(f"将统计以下指标：{', '.join(self.metrics)}\n")
+        
+        # 初始化results字典
+        self.results = {dept: {metric: {} for metric in self.metrics} for dept in self.departments}
 
         for filename in os.listdir(self.folder_path):
             if filename.endswith('.xlsx') and '年' in filename and '月' in filename:
@@ -125,14 +150,13 @@ class ExcelProcessor:
 
     def generate_reports(self):
         """
-        生成最终的JSON报告、无数据科室报告和简化报告。
+        生成最终的JSON报告。
         """
         final_report = OrderedDict()
         
         for dept in self.departments:
             dept_data = OrderedDict()
             no_data_metrics = OrderedDict()
-            simple_dept_data = OrderedDict()
             
             for metric in self.metrics:
                 metric_data = OrderedDict()
@@ -150,10 +174,6 @@ class ExcelProcessor:
                         "数据月份数": len(values),
                         "总值": round(sum(values), 4)
                     }
-                    simple_dept_data[metric] = {
-                        "平均值": round(sum(values) / len(values), 4),
-                        "数据月份数": len(values)
-                    }
                 else:
                     no_data_metrics[metric] = {
                         "状态": "无数据",
@@ -163,17 +183,11 @@ class ExcelProcessor:
                 dept_data[metric] = metric_data
             
             final_report[dept] = dept_data
-            self.simple_report[dept] = simple_dept_data
-            
             if no_data_metrics:
                 self.no_data_report[dept] = no_data_metrics
         
         self.save_json(final_report, self.output_path, "结果已保存到")
-        if self.no_data_report:
-            self.save_json(self.no_data_report, self.no_data_output_path, "无数据科室统计已保存到")
-        self.save_json(self.simple_report, self.simple_output_path, "简化统计结果已保存到")
-        
-        self.print_reports(final_report, self.no_data_report)
+        self.print_reports(final_report)
 
     def save_json(self, data, path, message):
         """
@@ -190,19 +204,18 @@ class ExcelProcessor:
         except Exception as e:
             print(f"\n保存JSON文件时出错：{str(e)}")
 
-    def print_reports(self, final_report, no_data_report):
+    def print_reports(self, final_report):
         """
         将报告打印到控制台。
 
         :param final_report: 最终的统计报告
-        :param no_data_report: 无数据科室报告
         """
         print("\n=== 统计结果 ===")
         print(json.dumps(final_report, ensure_ascii=False, indent=2))
         
-        if no_data_report:
+        if self.no_data_report:
             print("\n=== 无数据科室统计 ===")
-            print(json.dumps(no_data_report, ensure_ascii=False, indent=2))
+            print(json.dumps(self.no_data_report, ensure_ascii=False, indent=2))
 
     def run(self):
         """
@@ -220,13 +233,12 @@ if __name__ == "__main__":
         "乳腺内科", "血液病科", "消化肿瘤内一科", "消化肿瘤内二科", "呼吸肿瘤内科",
         "中西医结合科","重症医学科","门诊部"
     ]
-    metrics = ["次均门诊费用", "次均出院费用", "住院西成药占比"]
     
     folder_path = r"C:\Users\biyun\Desktop\work\2024年绩效"
     
     processor = ExcelProcessor(
         folder_path=folder_path,
         departments=departments,
-        metrics=metrics
+        # metrics参数不再需要指定
     )
     processor.run() 
