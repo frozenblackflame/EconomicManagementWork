@@ -111,7 +111,7 @@ def create_excel_data(data):
                 df = pd.DataFrame(valid_indicators)
                 
                 # 写入Excel，包括标题行
-                header = f"2024年{dept_name}开始指标统计表"
+                header = f"2024年{dept_name}指标统计表"
                 df.to_excel(writer, sheet_name=dept_name, index=False, startrow=1)
                 
                 # 获取worksheet对象并写入标题
