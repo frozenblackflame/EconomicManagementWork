@@ -4,22 +4,15 @@ from tkinter import filedialog
 import pandas as pd
 
 
-def select_files():
-    root = tk.Tk()
-    root.withdraw()
-    # 选择多个.xlsx 文件
-    file_paths = filedialog.askopenfilenames(filetypes=[("Excel files", "*.xlsx")])
-    return file_paths
-
-
 def process_files(file_paths):
     results = {}
+    all_names = []
     # 定义排除项列表，方便后期手动添加
-    exclude_list = ["合计", "小计"]
+    exclude_list = ["合计", "小计", "科主任", "总计", "备注", "病区"]
     for file_path in file_paths:
         # 获取文件所在文件夹名称
         folder_name = os.path.basename(os.path.dirname(file_path))
-        all_names = set()
+        current_names = set()
         # 读取 Excel 文件
         excel_file = pd.ExcelFile(file_path)
         # 获取所有表名
@@ -27,6 +20,8 @@ def process_files(file_paths):
         for sheet_name in sheet_names:
             # 读取工作表数据
             df = excel_file.parse(sheet_name)
+            # 去除空行
+            df = df.dropna(how='all')
             # 遍历每个单元格
             for col in df.columns:
                 for index, value in df[col].items():
@@ -48,47 +43,56 @@ def process_files(file_paths):
                                             should_exclude = True
                                             break
                                     if not should_exclude:
-                                        all_names.add(clean_name)
-                                        print(clean_name)  # 打印姓名日志
+                                        current_names.add(clean_name)
+                                        all_names.append(clean_name)
 
         # 统计去重后的姓名数量
-        count = len(all_names)
+        count = len(current_names)
         if folder_name in results:
             results[folder_name] += count
         else:
             results[folder_name] = count
 
-    return results
+    return results, all_names
 
 
-def save_results(results):
-    # 获取桌面路径
-    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-    output_file = os.path.join(desktop_path, "人数.xlsx")
-
-    data = [[folder, count] for folder, count in results.items()]
-    new_df = pd.DataFrame(data, columns=["文件夹名称", "人数"])
-
-    if os.path.exists(output_file):
-        # 如果文件已存在，读取原文件内容
-        existing_df = pd.read_excel(output_file)
-        # 追加新数据
-        combined_df = pd.concat([existing_df, new_df], ignore_index=True)
-    else:
-        combined_df = new_df
-
-    # 保存结果到 Excel 文件
-    combined_df.to_excel(output_file, index=False)
-    print(f"结果已保存到 {output_file}")
-
-
-if __name__ == "__main__":
-    # 选择文件
-    file_paths = select_files()
+def select_and_process():
+    # 选择多个.xlsx 文件
+    file_paths = filedialog.askopenfilenames(filetypes=[("Excel files", "*.xlsx")])
     if file_paths:
         # 处理文件
-        results = process_files(file_paths)
-        # 保存结果
-        save_results(results)
-    else:
-        print("未选择任何文件。")
+        results, all_names = process_files(file_paths)
+
+        # 清空之前的结果显示
+        names_text.delete(1.0, tk.END)
+        counts_text.delete(1.0, tk.END)
+
+        # 显示统计到的姓名
+        names_text.insert(tk.END, "统计到的姓名如下：\n")
+        for name in all_names:
+            names_text.insert(tk.END, f"{name}\n")
+
+        # 显示各文件夹的人数统计结果
+        counts_text.insert(tk.END, "各文件夹的人数统计结果如下：\n")
+        for folder, count in results.items():
+            counts_text.insert(tk.END, f"文件夹名称: {folder}, 人数: {count}\n")
+
+
+# 创建主窗口
+root = tk.Tk()
+root.title("Excel 姓名人数统计")
+
+# 创建选择文件按钮
+select_button = tk.Button(root, text="选择文件", command=select_and_process)
+select_button.pack(pady=20)
+
+# 创建一个文本框用于显示姓名
+names_text = tk.Text(root, height=10, width=30)
+names_text.pack()
+
+# 创建一个文本框用于显示各文件夹人数
+counts_text = tk.Text(root, height=10, width=30)
+counts_text.pack()
+
+# 运行主循环
+root.mainloop()
