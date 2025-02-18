@@ -1,7 +1,20 @@
 import os
 import pandas as pd
+from tkinter import filedialog
+import tkinter as tk
 
-def process_excel_files(folder_path):
+def process_excel_files():
+    # 创建一个临时的root窗口（但不显示）
+    root = tk.Tk()
+    root.withdraw()
+    
+    # 弹出文件夹选择对话框
+    folder_path = filedialog.askdirectory(title='请选择包含Excel文件的文件夹')
+    
+    if not folder_path:  # 如果用户取消选择，则退出
+        print("未选择文件夹，程序退出")
+        return
+    
     # 获取桌面路径
     desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
     output_folder = os.path.join(desktop_path, '医生的工作量')
@@ -47,7 +60,15 @@ def process_excel_files(folder_path):
                             '3级微创手术': row[indices['3级微创手术']+2],
                             '4级微创手术': row[indices['4级微创手术']+2],
                         }
-                        data['微创手术'] = data['3级微创手术'] + data['4级微创手术']
+                        
+                        # 确保数值类型一致，转换为数值类型
+                        try:
+                            微创3级 = float(data['3级微创手术']) if pd.notna(data['3级微创手术']) else 0
+                            微创4级 = float(data['4级微创手术']) if pd.notna(data['4级微创手术']) else 0
+                            data['微创手术'] = 微创3级 + 微创4级
+                        except (ValueError, TypeError):
+                            data['微创手术'] = 0
+                            
                         # 去除data['3级微创手术'] 和 data['4级微创手术']
                         del data['3级微创手术']
                         del data['4级微创手术']
@@ -69,6 +90,6 @@ def process_excel_files(folder_path):
                         with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
                             final_df.to_excel(writer, sheet_name='工作量明细', index=False)
 
-# 使用方法
-folder_path = r'C:\Users\biyun\Desktop\新建文件夹'  # 替换为你的文件夹地址
-process_excel_files(folder_path)
+# 直接调用函数，不需要手动指定路径
+if __name__ == "__main__":
+    process_excel_files()
