@@ -260,7 +260,7 @@ def main():
 
 
 # 创建 performance.spec 文件
-# 运行 pyinstaller -F performance.spec
+# 运行 pyinstaller performance.spec
 """
 # -*- mode: python ; coding: utf-8 -*-
 
