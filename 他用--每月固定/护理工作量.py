@@ -164,13 +164,25 @@ def create_department_excel(dept_name, current_data, performance_data, latest_fi
     
     # 创建DataFrame并保存到Excel
     if rows:
+        # 将日期字符串转换为datetime对象进行排序
+        for row in rows:
+            year, month = map(int, row['日期'].split('.'))
+            row['_date'] = datetime(year, month, 1)
+        
+        # 按日期降序排序
+        rows.sort(key=lambda x: x['_date'], reverse=True)
+        
+        # 删除临时日期字段
+        for row in rows:
+            del row['_date']
+            
         df = pd.DataFrame(rows)
         df.to_excel(writer, sheet_name='Sheet1', index=False)
         
         # 获取工作表对象
         worksheet = writer.sheets['Sheet1']
         
-        # 设置所有列的宽度为10
+        # 设置所有列的宽度为20
         for column in worksheet.columns:
             worksheet.column_dimensions[column[0].column_letter].width = 20
     
