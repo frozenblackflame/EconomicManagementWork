@@ -172,7 +172,7 @@ def create_department_excel(dept_name, current_data, performance_data, latest_fi
         
         # 设置所有列的宽度为10
         for column in worksheet.columns:
-            worksheet.column_dimensions[column[0].column_letter].width = 32
+            worksheet.column_dimensions[column[0].column_letter].width = 20
     
     writer.close()
 
