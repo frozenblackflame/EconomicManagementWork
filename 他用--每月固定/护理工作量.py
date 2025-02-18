@@ -39,6 +39,126 @@ def process_dataframe(df):
     
     return df
 
+def get_latest_json_files():
+    # 获取当前目录下所有JSON文件
+    json_files = [f for f in os.listdir() if f.endswith('.json')]
+    
+    # 解析文件名中的日期
+    dated_files = []
+    for file in json_files:
+        try:
+            year, month = map(int, file.split('.')[0:2])
+            date = datetime(year, month, 1)
+            dated_files.append((date, file))
+        except:
+            continue
+    
+    # 按日期排序
+    dated_files.sort(key=lambda x: x[0], reverse=True)
+    
+    return dated_files[:2] if len(dated_files) >= 2 else []
+
+def get_data_from_performance_json(dept_name, data):
+    """从绩效数据中提取指定科室的工作量数据"""
+    dept_data = {}
+    
+    # 检查数据格式
+    sample_item = data[0] if data else None
+    if not sample_item:
+        return dept_data
+        
+    # 如果是绩效数据格式（包含"项目名称"字段）
+    if '项目名称' in sample_item:
+        for item in data:
+            if item['科室名称'] == dept_name:
+                if item['项目名称'] in ['出院人次（护理）', '年龄（护理）', 
+                                    '护士中医适宜技术（护理）', 'Ⅱ级护理（护理）', 
+                                    'Ⅰ级护理（护理）', '出院患者占用床日（护理）']:
+                    dept_data[item['项目名称']] = item['工作量']
+    # 如果是基础数据格式（直接包含指标字段）
+    else:
+        dept_item = next((item for item in data if item['科室名称'] == dept_name), None)
+        if dept_item:
+            for field in ['出院人次（护理）', '年龄（护理）', 
+                         '护士中医适宜技术（护理）', 'Ⅱ级护理（护理）', 
+                         'Ⅰ级护理（护理）', '出院患者占用床日（护理）']:
+                if field in dept_item:
+                    dept_data[field] = dept_item[field]
+                    
+    return dept_data
+
+def create_department_excel(dept_name, current_data, performance_data, latest_files):
+    # 创建Excel文件
+    output_dir = "护理工作量"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        
+    filename = os.path.join(output_dir, f"{dept_name}.xlsx")
+    writer = pd.ExcelWriter(filename, engine='openpyxl')
+    
+    # 获取当前日期
+    current_date = max(latest_files[0][0], latest_files[1][0])
+    
+    # 准备数据
+    rows = []
+    
+    # 获取当前月数据
+    current_dept_data = next((item for item in current_data if item['科室名称'] == dept_name), None)
+    if current_dept_data:
+        row = {
+            '日期': current_date.strftime('%Y.%m'),
+            '出院人次（护理）': current_dept_data.get('出院人次（护理）', ''),
+            '年龄（护理）': current_dept_data.get('年龄（护理）', ''),
+            '护士中医适宜技术（护理）': current_dept_data.get('护士中医适宜技术（护理）', ''),
+            'Ⅱ级护理（护理）': current_dept_data.get('Ⅱ级护理（护理）', ''),
+            'Ⅰ级护理（护理）': current_dept_data.get('Ⅰ级护理（护理）', ''),
+            '出院患者占用床日（护理）': current_dept_data.get('出院患者占用床日（护理）', '')
+        }
+        rows.append(row)
+    
+    # 获取上月数据
+    last_month = datetime(current_date.year, current_date.month - 1 if current_date.month > 1 else 12, 1)
+    if current_date.month == 1:
+        last_month = last_month.replace(year=last_month.year - 1)
+    
+    # 获取去年同月数据
+    last_year = datetime(current_date.year - 1, current_date.month, 1)
+    
+    # 尝试读取去年同月的JSON文件
+    last_year_filename = f"{last_year.year}.{last_year.month:02d}.json"
+    if os.path.exists(last_year_filename):
+        with open(last_year_filename, 'r', encoding='utf-8') as f:
+            last_year_data = json.load(f)
+            last_year_dept_data = get_data_from_performance_json(dept_name, last_year_data)
+            if last_year_dept_data:
+                row = {
+                    '日期': last_year.strftime('%Y.%m'),
+                    **{k: last_year_dept_data.get(k, '') for k in [
+                        '出院人次（护理）', '年龄（护理）', '护士中医适宜技术（护理）',
+                        'Ⅱ级护理（护理）', 'Ⅰ级护理（护理）', '出院患者占用床日（护理）'
+                    ]}
+                }
+                rows.append(row)
+    
+    # 从performance_data中获取上月数据
+    dept_data = get_data_from_performance_json(dept_name, performance_data)
+    if dept_data:
+        row = {
+            '日期': last_month.strftime('%Y.%m'),
+            **{k: dept_data.get(k, '') for k in [
+                '出院人次（护理）', '年龄（护理）', '护士中医适宜技术（护理）',
+                'Ⅱ级护理（护理）', 'Ⅰ级护理（护理）', '出院患者占用床日（护理）'
+            ]}
+        }
+        rows.append(row)
+    
+    # 创建DataFrame并保存到Excel
+    if rows:
+        df = pd.DataFrame(rows)
+        df.to_excel(writer, sheet_name='Sheet1', index=False)
+    
+    writer.close()
+
 def main():
     # 创建Tk根窗口
     root = Tk()
@@ -102,6 +222,28 @@ def main():
         print(f"已保存护理绩效数据到: {output_filename}")
     except Exception as e:
         print(f"处理护理绩效数据时出错: {str(e)}")
+
+    # 获取最新的两个JSON文件
+    latest_files = get_latest_json_files()
+    if len(latest_files) < 2:
+        print("找不到足够的JSON文件")
+        return
+    
+    # 读取当前月份数据
+    with open(latest_files[0][1], 'r', encoding='utf-8') as f:
+        current_data = json.load(f)
+    
+    # 读取上月绩效数据
+    with open(latest_files[1][1], 'r', encoding='utf-8') as f:
+        performance_data = json.load(f)
+    
+    # 获取所有科室名称
+    departments = set(item['科室名称'] for item in current_data)
+    
+    # 为每个科室创建Excel文件
+    for dept in departments:
+        create_department_excel(dept, current_data, performance_data, latest_files)
+        print(f"已生成科室 {dept} 的Excel文件")
 
 if __name__ == "__main__":
     main()
