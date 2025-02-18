@@ -61,7 +61,7 @@ def rename_excel_files():
             # 移除年月
             new_name = re.sub(r'\d{4}年\d{1,2}月绩效', '', new_name)
             new_name = new_name + '.xlsx'
-        elif '行政科室评分表' in file:
+        elif '月' in file:
             new_name = re.sub(r'\d{4}年\d{1,2}月', '', file)
         else:
             # 处理类似"科室奖罚数据2024011.xlsx"的情况
