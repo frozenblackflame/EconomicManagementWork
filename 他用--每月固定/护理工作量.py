@@ -66,22 +66,32 @@ def get_data_from_performance_json(dept_name, data):
     sample_item = data[0] if data else None
     if not sample_item:
         return dept_data
+    
+    # 定义需要查找的字段和对应的关键词
+    field_keywords = {
+        '出院人次（护理）': '出院人次',
+        '年龄（护理）': '年龄',
+        '护士中医适宜技术（护理）': '护士中医适宜技术',
+        'Ⅱ级护理（护理）': 'Ⅱ级护理',
+        'Ⅰ级护理（护理）': 'Ⅰ级护理',
+        '出院患者占用床日（护理）': '出院患者占用床日'
+    }
         
     # 如果是绩效数据格式（包含"项目名称"字段）
     if '项目名称' in sample_item:
         for item in data:
             if item['科室名称'] == dept_name:
-                if item['项目名称'] in ['出院人次（护理）', '年龄（护理）', 
-                                    '护士中医适宜技术（护理）', 'Ⅱ级护理（护理）', 
-                                    'Ⅰ级护理（护理）', '出院患者占用床日（护理）']:
-                    dept_data[item['项目名称']] = item['工作量']
+                item_name = item['项目名称']
+                # 对每个字段进行模糊匹配
+                for field, keyword in field_keywords.items():
+                    if keyword in item_name:
+                        dept_data[field] = item['工作量']
+                        break
     # 如果是基础数据格式（直接包含指标字段）
     else:
         dept_item = next((item for item in data if item['科室名称'] == dept_name), None)
         if dept_item:
-            for field in ['出院人次（护理）', '年龄（护理）', 
-                         '护士中医适宜技术（护理）', 'Ⅱ级护理（护理）', 
-                         'Ⅰ级护理（护理）', '出院患者占用床日（护理）']:
+            for field in field_keywords.keys():
                 if field in dept_item:
                     dept_data[field] = dept_item[field]
                     
