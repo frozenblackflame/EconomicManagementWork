@@ -40,10 +40,13 @@ def process_excel_files():
             indices = {
                 '出院人次': header_row_1.index('出院人次'),
                 '门诊人次': header_row_1.index('门诊人次'),
+                '1级手术': header_row_1.index('1级手术'),
+                '2级手术': header_row_1.index('2级手术'),
                 '3级手术': header_row_1.index('3级手术'),
                 '4级手术': header_row_1.index('4级手术'),
                 '3级微创手术': header_row_1.index('3级微创手术'),
-                '4级微创手术': header_row_1.index('4级微创手术')
+                '4级微创手术': header_row_1.index('4级微创手术'),
+                '医生中医适宜技术': header_row_1.index('医生中医适宜技术')
             }
             
             # 收集每个科室的数据
@@ -55,10 +58,13 @@ def process_excel_files():
                             '日期': date_info,
                             '出院人次': row[indices['出院人次']+2],
                             '门诊人次': row[indices['门诊人次']+2],
+                            '1级手术': row[indices['1级手术']+2],
+                            '2级手术': row[indices['2级手术']+2],
                             '3级手术': row[indices['3级手术']+2],
                             '4级手术': row[indices['4级手术']+2],
                             '3级微创手术': row[indices['3级微创手术']+2],
                             '4级微创手术': row[indices['4级微创手术']+2],
+                            '医生中医适宜技术': row[indices['医生中医适宜技术']+2]
                         }
                         
                         # 确保数值类型一致，转换为数值类型
@@ -66,9 +72,19 @@ def process_excel_files():
                             微创3级 = float(data['3级微创手术']) if pd.notna(data['3级微创手术']) else 0
                             微创4级 = float(data['4级微创手术']) if pd.notna(data['4级微创手术']) else 0
                             data['微创手术'] = 微创3级 + 微创4级
+                            data['医生中医适宜技术'] = float(data['医生中医适宜技术']) if pd.notna(data['医生中医适宜技术']) else 0
+                            # 转换手术数据为数值类型
+                            for level in ['1级手术', '2级手术', '3级手术', '4级手术']:
+                                data[level] = float(data[level]) if pd.notna(data[level]) else 0
                         except (ValueError, TypeError):
-                            data['微创手术'] = 0
-                            
+                            if '微创手术' not in data:
+                                data['微创手术'] = 0
+                            if '医生中医适宜技术' not in data:
+                                data['医生中医适宜技术'] = 0
+                            for level in ['1级手术', '2级手术', '3级手术', '4级手术']:
+                                if level not in data:
+                                    data[level] = 0
+
                         # 去除data['3级微创手术'] 和 data['4级微创手术']
                         del data['3级微创手术']
                         del data['4级微创手术']
