@@ -166,6 +166,13 @@ def create_department_excel(dept_name, current_data, performance_data, latest_fi
     if rows:
         df = pd.DataFrame(rows)
         df.to_excel(writer, sheet_name='Sheet1', index=False)
+        
+        # 获取工作表对象
+        worksheet = writer.sheets['Sheet1']
+        
+        # 设置所有列的宽度为10
+        for column in worksheet.columns:
+            worksheet.column_dimensions[column[0].column_letter].width = 32
     
     writer.close()
 
@@ -254,6 +261,15 @@ def main():
     for dept in departments:
         create_department_excel(dept, current_data, performance_data, latest_files)
         print(f"已生成科室 {dept} 的Excel文件")
+    
+    # 删除所有JSON文件
+    json_files = [f for f in os.listdir() if f.endswith('.json')]
+    for file in json_files:
+        try:
+            os.remove(file)
+            print(f"已删除文件: {file}")
+        except Exception as e:
+            print(f"删除文件 {file} 时出错: {str(e)}")
 
 if __name__ == "__main__":
     main()
