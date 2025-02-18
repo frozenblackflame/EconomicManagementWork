@@ -27,7 +27,7 @@ def process_excel_files():
     for file_name in os.listdir(folder_path):
         if file_name.endswith('.xlsx'):
             file_path = os.path.join(folder_path, file_name)
-            date_info = file_name.split('临床积分明细.xlsx')[0]  # 提取日期信息
+            date_info = file_name.split('工作量.xlsx')[0]  # 提取日期信息
             
             # 读取Excel文件，不直接指定列，因为需要动态查找
             df = pd.read_excel(file_path, header=None, skiprows=3)
