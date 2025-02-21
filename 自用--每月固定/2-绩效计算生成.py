@@ -155,6 +155,7 @@ def create_file_name(original_name):
 
 def process_excel_files(files_to_convert):
     """处理Excel文件并创建ZIP包"""
+    input("\n所有文件更新完成后，请按回车键继续...")
     # 创建Excel应用实例
     excel = Dispatch("Excel.Application")
     excel.Visible = False
@@ -164,9 +165,6 @@ def process_excel_files(files_to_convert):
     excel.AlertBeforeOverwriting = False
 
     try:
-        # 设置Excel安全级别
-        app = excel.Application
-        app.AutomationSecurity = 1
 
         # 创建目标文件夹
         folder_name = create_folder_name()
