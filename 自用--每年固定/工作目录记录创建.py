@@ -20,6 +20,13 @@ def create_work_directories(year):
             if not os.path.exists(month_dir):
                 os.makedirs(month_dir)
                 print(f"创建子目录：{month_dir}")
+                
+                # 创建“原始”，“修改”，“其他”子目录
+                for sub_dir in ["原始", "修改", "其他"]:
+                    sub_dir_path = os.path.join(month_dir, sub_dir)
+                    if not os.path.exists(sub_dir_path):
+                        os.makedirs(sub_dir_path)
+                        print(f"创建子目录：{sub_dir_path}")
         
         # 创建年度总结报告子目录
         report_dir = os.path.join(main_dir, "年度总结报告")
