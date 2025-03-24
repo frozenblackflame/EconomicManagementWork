@@ -71,8 +71,8 @@ class PerformanceProcessor:
         self.log(f"已选择奖罚文件: {self.penalty_file_path}")
 
         try:
-            # 加载奖罚Excel文件
-            wb = load_workbook(self.penalty_file_path)
+            # 加载奖罚Excel文件（data_only=True 确保读取显示数据而非公式）
+            wb = load_workbook(self.penalty_file_path, data_only=True)
             sheet = wb.active  # 默认读取第一个工作表
             self.log("成功加载奖罚数据")
 
@@ -112,8 +112,8 @@ class PerformanceProcessor:
         self.log(f"已选择文件: {self.performance_file_path}")
 
         try:
-            # 加载Excel文件
-            wb = load_workbook(self.performance_file_path)
+            # 加载Excel文件（data_only=True 确保读取显示数据而非公式）
+            wb = load_workbook(self.performance_file_path, data_only=True)
             sheet_names = wb.sheetnames  # 获取所有工作表名称
             self.log(f"可用工作表: {sheet_names}")
 
