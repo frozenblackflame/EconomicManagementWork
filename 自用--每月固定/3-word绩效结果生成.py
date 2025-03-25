@@ -151,7 +151,7 @@ class PerformanceProcessor:
 
         # 处理每一行数据
         processed_count = 0
-        for row in range(39, 98):  # 35到93行
+        for row in range(39, 99):  # 35到93行
             if sheet.cell(row=row, column=1).value:  # 检查序号列
                 department = sheet.cell(row=row, column=2).value
                 if department:  # 如果科室名称不为空
