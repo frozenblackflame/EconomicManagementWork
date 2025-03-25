@@ -140,6 +140,9 @@ class PerformanceProcessor:
         # 用于存储有奖罚明细的科室名称
         departments_with_penalties = []
 
+        # 初始化处理计数器
+        processed_count = 0
+
         # 获取上个月的年月
         current_date = datetime.now()
         if current_date.month == 1:
@@ -149,9 +152,10 @@ class PerformanceProcessor:
             year = current_date.year
             month = current_date.month - 1
 
-        # 处理每一行数据
-        processed_count = 0
-        for row in range(39, 99):  # 35到93行
+        # 动态读取行，直到第一列出现“合计”为止
+        for row in range(39, sheet.max_row + 1):  # 从第39行开始
+            if sheet.cell(row=row, column=1).value == "合计":
+                break  # 遇到“合计”停止读取
             if sheet.cell(row=row, column=1).value:  # 检查序号列
                 department = sheet.cell(row=row, column=2).value
                 if department:  # 如果科室名称不为空
