@@ -45,18 +45,7 @@ with pd.ExcelWriter(output_path) as writer:
         # 将结果转换为DataFrame
         dept_data = pd.DataFrame(result_data)
         
-        # 重命名列
-        column_mapping = {
-            'A': '核算单元名称',
-            'B': '科室名称',
-            'C': '科室名称',
-            'D': '名称',
-            'E': '项目名称',
-            'F': '点数'
-        }
-        dept_data = dept_data.rename(columns=column_mapping)
-        
-        # 将处理后的数据写入到对应的工作表中
-        dept_data.to_excel(writer, sheet_name=dept, index=False)
+        # 将处理后的数据写入到对应的工作表中，header=False表示不写入表头
+        dept_data.to_excel(writer, sheet_name=dept, index=False, header=False)
 
 print("处理完成！结果已保存到：", output_path)
