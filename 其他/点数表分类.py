@@ -12,7 +12,7 @@ print(f"总数据行数（不含表头）：{total_rows} 行")
 departments = df['B'].unique()
 
 # 创建一个ExcelWriter对象
-output_path = r"C:\Users\biyun\Desktop\work\分类结果（点数值）.xlsx"
+output_path = r"C:\Users\biyun\Desktop\work\分类结果.xlsx"
 with pd.ExcelWriter(output_path) as writer:
     # 对每个科室进行处理
     for dept in departments:
@@ -45,7 +45,24 @@ with pd.ExcelWriter(output_path) as writer:
         # 将结果转换为DataFrame
         dept_data = pd.DataFrame(result_data)
         
-        # 将处理后的数据写入到对应的工作表中，header=False表示不写入表头
-        dept_data.to_excel(writer, sheet_name=dept, index=False, header=False)
+        # 重命名列
+        column_mapping = {
+            'B': '科室名称',  # 将B列重命名为科室名称
+            'C': '二级科室名称',  # 将C列重命名为二级科室名称
+            'D': '名称',
+            'E': '项目名称',
+            'F': '点数'
+        }
+        dept_data = dept_data.rename(columns=column_mapping)
+        
+        # 移除A列
+        dept_data = dept_data.drop(columns=['A'], errors='ignore')
+        
+        # 如果"二级科室名称"列所有值都是空白，则删除该列
+        if dept_data['二级科室名称'].isnull().all():
+            dept_data = dept_data.drop(columns=['二级科室名称'])
+        
+        # 将处理后的数据写入到对应的工作表中
+        dept_data.to_excel(writer, sheet_name=dept, index=False)
 
 print("处理完成！结果已保存到：", output_path)
