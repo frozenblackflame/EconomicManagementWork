@@ -4,8 +4,11 @@ import os
 # 读取Excel文件
 df = pd.read_excel(r"C:\Users\biyun\Desktop\work\点值数.xlsx")
 
+# 统计数据行数（不包括表头）
+total_rows = len(df)
+print(f"总数据行数（不含表头）：{total_rows} 行")
+
 # 1. 按照B列(科室)分类创建工作表
-# 获取B列中所有唯一的科室名称
 departments = df['B'].unique()
 
 # 创建一个ExcelWriter对象
@@ -20,27 +23,27 @@ with pd.ExcelWriter(output_path) as writer:
         # 按D列排序，这样相同类型的会排在一起
         dept_data = dept_data.sort_values('D')
         
-        # 在相同类型之间添加空行
-        previous_type = None
-        rows_to_add = []
+        # 创建新的DataFrame来存储结果
+        result_data = []
         
-        for index, row in dept_data.iterrows():
-            current_type = row['D']
-            # 比较时考虑 NaN 的情况
-            if previous_type is not None and pd.notna(current_type) and pd.notna(previous_type):
-                if current_type != previous_type:
-                    empty_row = pd.Series([None] * len(row), index=row.index)
-                    rows_to_add.append((index, empty_row))
-            elif previous_type is not None and (pd.isna(current_type) != pd.isna(previous_type)):
-                empty_row = pd.Series([None] * len(row), index=row.index)
-                rows_to_add.append((index, empty_row))
-            previous_type = current_type
+        # 遍历数据行（除了最后一行）
+        for i in range(len(dept_data) - 1):
+            current_row = dept_data.iloc[i]
+            next_row = dept_data.iloc[i + 1]
+            
+            # 添加当前行
+            result_data.append(current_row)
+            
+            # 如果当前行和下一行的"名称"列值不同，添加空行
+            if current_row['D'] != next_row['D']:
+                empty_row = pd.Series([None] * len(current_row), index=current_row.index)
+                result_data.append(empty_row)
         
-        # 插入空行
-        for idx, empty_row in sorted(rows_to_add, reverse=True):
-            dept_data = pd.concat([dept_data.iloc[:idx], 
-                                 pd.DataFrame([empty_row]), 
-                                 dept_data.iloc[idx:]]).reset_index(drop=True)
+        # 添加最后一行
+        result_data.append(dept_data.iloc[-1])
+        
+        # 将结果转换为DataFrame
+        dept_data = pd.DataFrame(result_data)
         
         # 重命名列
         column_mapping = {
