@@ -12,7 +12,7 @@ print(f"总数据行数（不含表头）：{total_rows} 行")
 departments = df['B'].unique()
 
 # 创建一个ExcelWriter对象
-output_path = r"C:\Users\biyun\Desktop\work\分类结果.xlsx"
+output_path = r"C:\Users\biyun\Desktop\work\分类结果（点数值）.xlsx"
 with pd.ExcelWriter(output_path) as writer:
     # 对每个科室进行处理
     for dept in departments:
