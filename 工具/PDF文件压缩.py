@@ -3,6 +3,9 @@ from pdf2image import convert_from_path
 from PIL import Image
 from PyPDF2 import PdfMerger
 import tempfile
+from tkinter import filedialog
+import tkinter as tk
+from pathlib import Path
 
 def compress_pdf(input_path, output_path, target_size_mb=2):
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -48,6 +51,27 @@ def compress_pdf(input_path, output_path, target_size_mb=2):
         merger.close()
 
 if __name__ == '__main__':
-    input_file = r"C:\Users\biyun\Desktop\工作\1.pdf"
-    output_file = 'compressed_output.pdf'
-    compress_pdf(input_file, output_file)
+    # 创建GUI根窗口
+    root = tk.Tk()
+    root.withdraw()  # 隐藏主窗口
+    
+    # 打开文件选择对话框
+    input_file = filedialog.askopenfilename(
+        title='选择要压缩的PDF文件',
+        filetypes=[('PDF文件', '*.pdf')]
+    )
+    
+    if input_file:
+        # 创建桌面上的"压缩后"文件夹
+        desktop_path = str(Path.home() / "Desktop")
+        output_folder = os.path.join(desktop_path, "压缩后")
+        os.makedirs(output_folder, exist_ok=True)
+        
+        # 设置输出文件路径
+        input_filename = os.path.basename(input_file)
+        output_filename = f"压缩_{input_filename}"
+        output_file = os.path.join(output_folder, output_filename)
+        
+        # 压缩PDF
+        compress_pdf(input_file, output_file)
+        print(f"文件已保存至: {output_file}")
