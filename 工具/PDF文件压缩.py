@@ -9,7 +9,7 @@ from pathlib import Path
 
 def compress_pdf(input_path, output_path, target_size_mb=2):
     with tempfile.TemporaryDirectory() as temp_dir:
-        # 降低DPI至120
+        # 降低DPI至120（这个参数可以根据需要调整）
         images = convert_from_path(input_path, dpi=120)
         
         compressed_images = []
